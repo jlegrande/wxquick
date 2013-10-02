@@ -17,7 +17,7 @@ frame.pack(show=True)
 app.MainLoop()
 ```
 
-What's the frame.pack() call all about? That's where the magic happens. The packer is what lays out the widgets in the frame and any of its children (and their children, and their children's children, etc.).
+What's the frame.pack() call all about? That's where the magic happens. The packer is what lays out the child widgets in the frame (and their children, and their children's children, etc.).
 
 Not very interesting eh? Let's try a modified version of the "Building a simple text editor" example from http://wiki.wxpython.org/Getting%20Started
 

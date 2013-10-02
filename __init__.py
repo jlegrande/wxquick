@@ -10,9 +10,11 @@ def child_packer(container, parent=None):
     for child in container.children:
         child.pack(container)
     
-def frame_packer(container, parent=None):
+def frame_packer(container, parent=None, show=False):
     child_packer(container, parent)
     container.Fit()
+    if show:
+        container.Show()
 
 def sizer_layout_packer(container, parent=None):
     child_packer(container, parent)
@@ -36,9 +38,11 @@ def sizer_packer(container, parent):
 
 class WxFrame(WxContainer, wx.Frame): packer = frame_packer
 class WxStaticText(WxWidget, wx.StaticText): pass
-class WxCheckListBox(WxWidget, wx.CheckListBox): events = [event.checklistbox,
-                                                           event.listbox]
 class WxListBox(WxWidget, wx.ListBox): events = [event.listbox]
+class WxTextCtrl(WxWidget, wx.TextCtrl): pass
 class SizerPanel(WxContainer, wx.Panel): packer = sizer_layout_packer
 class VBox(WxContainer, containers.VerticalBox): packer = sizer_packer
 class HBox(WxContainer, containers.HorizontalBox): packer = sizer_packer
+
+class WxCheckListBox(WxWidget, wx.CheckListBox): 
+    events = [event.checklistbox, event.listbox]

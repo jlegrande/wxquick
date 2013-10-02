@@ -35,7 +35,6 @@ class MetaWxWidget(type):
                 self.wxClass = base
 
         type.__init__(self, clsname, bases, attrs)
-        print 'attrs', attrs
 
 
 def ctr_init(container, *args, **kw):
@@ -58,11 +57,9 @@ class MetaWxContainer(type):
         return type.__new__(cls, clsname, bases, attrs)
 
     def __init__(self, clsname, bases, attrs):
-        print 'class name', clsname
         for base in bases:
             if base != WxContainer:
                 self.wxClass = base
-        print 'attrs', attrs
 
 class WxContainer: __metaclass__ = MetaWxContainer
 class WxWidget: __metaclass__ = MetaWxWidget

@@ -1,0 +1,4 @@
+wxquick
+=======
+
+Declarative wxPython wrapper

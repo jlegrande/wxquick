@@ -1,7 +1,7 @@
 wxquick
 =======
 
-wxquick is a declarative layer on top of wxPython, similar to QML for Qt. The goal is to take the drudgery and boilerplate out of building wxPython GUIs.
+wxquick is a declarative layer on top of wxPython, similar to QML for Qt. The goal is to simplify the building of wxPython GUIs.
 
 
 Hello World:

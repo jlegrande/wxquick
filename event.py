@@ -15,6 +15,10 @@ def lb_cb_wrapper(listbox, callback, lbdata):
 
     return cb
     
+def menuitem_cb_wrapper(menuitem, callback):
+    def cb(evt):
+        callback(menuitem.GetLabel(), menuitem)
+        
 # Event Handlers
 
 def checklistbox(listbox, callback):

@@ -32,20 +32,20 @@ def sizer_packer(container, parent):
         container.Add(child, child.proportion, child.flag, child.border)
 
 def menu_packer(menu, frame):
-    menu.name = menu._kwargs.get('name', '')
+    menu.title = menu._kwargs.get('title', '')
     menu.wxClass.__init__(menu)
     for item_id, item_text, item_help, callback in menu.children:
         menuitem = menu.Append(item_id, item_text, item_help)
-        frame.Bind(wx.EVT_MENU, callback, menuitem)
+        frame.Bind(wx.EVT_MENU, menuitem_cb_wrapper(menuitem, callback), menuitem)
 
-def menubar_packer(menubar, parent):
-    parent.CreateStatusBar()
+def menubar_packer(menubar, frame):
+    frame.CreateStatusBar()
     menubar.wxClass.__init__(menubar)
     for menu in menubar.children:
-        menu.pack(parent)
-        menubar.Append(menu, menu.name)
+        menu.pack(frame)
+        menubar.Append(menu, menu.title)
 
-    parent.SetMenuBar(menubar)
+    frame.SetMenuBar(menubar)
 
         
 # Wrapper Classes

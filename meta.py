@@ -18,7 +18,8 @@ def widg_pack(widget, parent):
         widget.SetFont(widget.font)
 
     for event in widget.events:
-        event(widget, widget.callback)
+        if widget.callback:
+            event(widget, widget.callback)
         
 class MetaWxWidget(type):
     def __new__(cls, clsname, bases, attrs):

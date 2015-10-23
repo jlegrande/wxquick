@@ -12,9 +12,20 @@ def child_packer(container, parent=None):
     
 def frame_packer(container, parent=None, show=False):
     child_packer(container, parent)
-    container.Fit()
+    #container.Fit()
     if show:
         container.Show()
+
+def notebook_pack(container, parent=None, show=False):
+    container.wxClass.__init__(container, parent, **container._kwargs)
+    for child in container.children:
+        text = child._kwargs.pop('tab_name')
+        if not text:
+            print '[WARNING] Child of notebook does not have a tab name.'
+            continue
+        selected = child._kwargs.pop('tab_selected', False)
+        child.pack(container)
+        container.AddPage(child, text, selected)
 
 def sizer_layout_packer(container, parent=None):
     child_packer(container, parent)
@@ -23,6 +34,7 @@ def sizer_layout_packer(container, parent=None):
     sizer = container.children[0]
     container.SetSizer(sizer)
     container.SetAutoLayout(True)
+    container.Layout()
     sizer.Fit(container)
 
 def sizer_packer(container, parent):
@@ -50,12 +62,15 @@ def menubar_packer(menubar, frame):
         
 # Wrapper Classes
 
+class WxButton(WxWidget, wx.Button): events = [event.button]
 class WxFrame(WxContainer, wx.Frame): packer = frame_packer
-class WxStaticText(WxWidget, wx.StaticText): pass
+class WxHtmlWindow(WxWidget, wx.html.HtmlWindow): pass
 class WxListBox(WxWidget, wx.ListBox): events = [event.listbox]
 class WxMenu(WxContainer,wx.Menu): packer = menu_packer
 class WxMenuBar(WxContainer, wx.MenuBar): packer = menubar_packer
-class WxTextCtrl(WxWidget, wx.TextCtrl): pass
+class WxNotebook(WxContainer, wx.Notebook): packer = notebook_pack
+class WxStaticText(WxWidget, wx.StaticText): pass
+class WxTextCtrl(WxWidget, wx.TextCtrl): events = [event.text]
 class SizerPanel(WxContainer, wx.Panel): packer = sizer_layout_packer
 class VBox(WxContainer, containers.VerticalBox): packer = sizer_packer
 class HBox(WxContainer, containers.HorizontalBox): packer = sizer_packer

@@ -10,9 +10,12 @@ def child_packer(container, parent=None):
     for child in container.children:
         child.pack(container)
     
-def frame_packer(container, parent=None, show=False):
+def frame_packer(container, parent=None, show=False, center=True):
     child_packer(container, parent)
     #container.Fit()
+    if center:
+        container.CenterOnScreen()
+        
     if show:
         container.Show()
 

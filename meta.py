@@ -1,9 +1,14 @@
+import wx
+
 def widg_init(widget, *args, **kw):
     widget._args = args
     widget.proportion = kw.pop('sizer_proportion', 0)
     widget.flag = kw.pop('sizer_flag', 0)
     widget.border = kw.pop('sizer_border', 0)
     widget.font = kw.pop('font', None)
+    widget.fg_color = kw.pop('fg_color', None)
+    widget.bold = kw.pop('bold', None)
+    widget.wrap = kw.pop('wrap', None)
     widget.callback = kw.pop('callback', None)
     widget._kwargs = kw
 
@@ -17,6 +22,17 @@ def widg_pack(widget, parent):
     if widget.font:
         widget.SetFont(widget.font)
 
+    if widget.fg_color:
+        widget.SetForegroundColour(widget.fg_color)
+
+    if widget.bold:
+        font = widget.GetFont()
+        font.SetWeight(wx.FONTWEIGHT_BOLD)
+        widget.SetFont(font)
+
+    if widget.wrap:
+        widget.Wrap(widget.wrap)
+        
     for event in widget.events:
         if widget.callback:
             event(widget, widget.callback)
@@ -43,6 +59,7 @@ def ctr_init(container, *args, **kw):
     container.proportion = kw.pop('sizer_proportion', 0)
     container.flag = kw.pop('sizer_flag', 0)
     container.border = kw.pop('sizer_border', 0)
+    container.item_gap = kw.pop('item_gap', 0)
     container._kwargs = kw
 
 def add_child(container, child):

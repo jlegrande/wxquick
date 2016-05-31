@@ -2,6 +2,7 @@ import wx
 from wx.lib.intctrl import IntCtrl
 from wx.lib.scrolledpanel import ScrolledPanel
 from meta import WxContainer, WxWidget
+import util
 import containers
 import event
 
@@ -139,5 +140,8 @@ class Spacer(WxWidget, containers.Spacer): pass
 class VBox(WxContainer, containers.VerticalBox): packer = sizer_packer
 class HBox(WxContainer, containers.HorizontalBox): packer = sizer_packer
 
+def BoldFont(point_size, family=wx.FONTFAMILY_DEFAULT, style=wx.FONTSTYLE_NORMAL):
+    return util.bold_font(point_size, family, style)
 
-
+def ErrorDialog(error, caption, parent=None):
+    return wx.MessageDialog(parent, error, caption, wx.OK|wx.ICON_ERROR)

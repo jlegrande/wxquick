@@ -93,7 +93,8 @@ def dialog_packer(dialog, parent=None, center=True):
         try:
             dialog.SetSizer(dialog.children[0])
             dialog.SetAutoLayout(True)
-            dialog.Fit()
+            if not dialog._kwargs.get('size'):
+                dialog.Fit()
         except TypeError:
             pass
 
@@ -143,5 +144,22 @@ class HBox(WxContainer, containers.HorizontalBox): packer = sizer_packer
 def BoldFont(point_size, family=wx.FONTFAMILY_DEFAULT, style=wx.FONTSTYLE_NORMAL):
     return util.bold_font(point_size, family, style)
 
+def Font(point_size,
+         family=wx.FONTFAMILY_DEFAULT,
+         style=wx.FONTSTYLE_NORMAL,
+         weight=wx.FONTWEIGHT_NORMAL,
+         underline=False,
+         face=''):
+    return util.font(point_size, family, style, weight, underline, face)
+
 def ErrorDialog(error, caption, parent=None):
     return wx.MessageDialog(parent, error, caption, wx.OK|wx.ICON_ERROR)
+
+def InfoDialog(error, caption, parent=None):
+    return wx.MessageDialog(parent, error, caption, wx.OK|wx.ICON_INFORMATION)
+
+def ConfirmDialog(error, caption, parent=None):
+    return wx.MessageDialog(parent,
+                            error,
+                            caption,
+                            wx.YES|wx.NO|wx.NO_DEFAULT|wx.ICON_WARNING)

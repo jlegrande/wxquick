@@ -27,6 +27,11 @@ def button_cb_wrapper(button, callback):
 
     return cb
     
+def choice_cb_wrapper(choice, callback):
+    def cb(evt):
+        callback(evt.GetString(), choice, evt)
+    return cb
+
 def text_ctrl_change_wrapper(text_ctrl, callback):
     def cb(evt):
         callback('text_ctrl_changed', text_ctrl.GetValue(), evt)
@@ -47,6 +52,11 @@ def listbox(listbox, callback):
 def button(button, callback):
     wx.EVT_BUTTON(button, button.GetId(), button_cb_wrapper(button, callback))
 
+def choice(wxchoice, callback):
+    wx.EVT_CHOICE(wxchoice,
+                  wxchoice.GetId(),
+                  choice_cb_wrapper(wxchoice, callback))
+    
 def text(text_ctrl, callback):
     wx.EVT_TEXT(text_ctrl, 
                 text_ctrl.GetId(), 

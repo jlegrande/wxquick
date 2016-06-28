@@ -1,5 +1,6 @@
 import wx
 from wx.lib.intctrl import IntCtrl
+from wx.lib.masked import TextCtrl
 from wx.lib.scrolledpanel import ScrolledPanel
 from meta import WxContainer, WxWidget
 import util
@@ -115,6 +116,7 @@ def dlg_button_szr_packer(butt_szr, parent):
 # Wrapper Classes
 
 class WxButton(WxWidget, wx.Button): events = [event.button]
+class WxChoice(WxWidget, wx.Choice): events = [event.choice]
 class WxDialog(WxContainer, wx.Dialog): packer = dialog_packer
 class WxFrame(WxContainer, wx.Frame): packer = frame_packer
 class WxHtmlWindow(WxWidget, wx.html.HtmlWindow): pass
@@ -133,7 +135,8 @@ class WxCheckListBox(WxWidget, wx.CheckListBox):
 class DialogButtons(WxWidget, containers.DialogButtons):
     events = [event.button]
     packer = dlg_button_szr_packer
-    
+
+class MaskedTextCtrl(WxWidget, TextCtrl): pass
 class ScrolledSizerPanel(WxContainer, ScrolledPanel): packer = sizer_layout_packer
 class SizerPanel(WxContainer, wx.Panel): packer = sizer_layout_packer
 class Spacer(WxWidget, containers.Spacer): pass

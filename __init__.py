@@ -112,7 +112,21 @@ def dlg_button_szr_packer(butt_szr, parent):
         for event in butt_szr.events:
             for butt in buttons:
                 event(butt, cb)
-    
+
+def popup_packer(popup, parent=None):
+    center = popup._kwargs.pop('center', False)
+    child_packer(popup, parent)
+
+    if center:
+        if parent:
+            popup.CenterOnParent()
+        else:
+            res = wx.GetDisplaySize()
+            center = [res.GetWidth()/2, res.GetHeight()/2]
+            size = popup.GetSize()
+            popup.SetPosition((center[0]/2 - size.GetWidth()/2,
+                              center[1]/2 - size.GetHeight()/2))
+
 # Wrapper Classes
 
 class WxButton(WxWidget, wx.Button): events = [event.button]
@@ -125,6 +139,7 @@ class WxListBox(WxWidget, wx.ListBox): events = [event.listbox]
 class WxMenu(WxContainer,wx.Menu): packer = menu_packer
 class WxMenuBar(WxContainer, wx.MenuBar): packer = menubar_packer
 class WxNotebook(WxContainer, wx.Notebook): packer = notebook_pack
+class WxPopupWindow(WxContainer, wx.PopupWindow): packer = popup_packer
 class WxStaticLine(WxWidget, wx.StaticLine): pass
 class WxStaticText(WxWidget, wx.StaticText): pass
 class WxTextCtrl(WxWidget, wx.TextCtrl): events = [event.text]

@@ -16,7 +16,7 @@ class DialogButtons(wx.BoxSizer):
     def __init__(self, parent, style):
         wx.BoxSizer.__init__(self, wx.HORIZONTAL)
         dlg_found = False
-        while not dlg_found:
+        while parent and not dlg_found:
             try:
                 self.Add(parent.CreateButtonSizer(style))
                 dlg_found = True

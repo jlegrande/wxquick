@@ -1,4 +1,6 @@
 import wx
+import wx.html
+from wx.grid import Grid
 from wx.lib.intctrl import IntCtrl
 from wx.lib.masked import TextCtrl
 from wx.lib.scrolledpanel import ScrolledPanel
@@ -62,12 +64,15 @@ def sizer_packer(container, parent):
     container.wxClass.__init__(container, **container._kwargs)
     for child in container.children:
         child.pack(parent)
-        spacer_size = getattr(child, 'spacer_size', 0)
-
-        if spacer_size == 0:
+        spacer_size = getattr(child, 'spacer_size', None)
+        if not spacer_size:
             container.Add(child, child.proportion, child.flag, child.border)
         else:
-            container.AddSpacer(spacer_size)
+            try:
+                w, h = spacer_size
+                container.Add(w, h, 0)
+            except TypeError:
+                container.AddSpacer(spacer_size)
 
         if container.item_gap > 0:
             container.AddSpacer(container.item_gap)
@@ -126,6 +131,13 @@ def popup_packer(popup, parent=None):
             size = popup.GetSize()
             popup.SetPosition((center[0]/2 - size.GetWidth()/2,
                               center[1]/2 - size.GetHeight()/2))
+def grid_packer(grid, parent):
+    rows, cols = grid._kwargs.pop('grid_size', (1,1))
+    colnames = grid._kwargs.pop('columns', [])
+    grid.wxClass.__init__(grid, parent, *grid._args, **grid._kwargs)
+    grid.CreateGrid(rows, cols)
+    for i, name in enumerate(colnames):
+        grid.SetColLabelValue(i, name)
 
 # Wrapper Classes
 
@@ -133,6 +145,7 @@ class WxButton(WxWidget, wx.Button): events = [event.button]
 class WxChoice(WxWidget, wx.Choice): events = [event.choice]
 class WxDialog(WxContainer, wx.Dialog): packer = dialog_packer
 class WxFrame(WxContainer, wx.Frame): packer = frame_packer
+class WxGrid(WxWidget, Grid): packer = grid_packer
 class WxHtmlWindow(WxWidget, wx.html.HtmlWindow): pass
 class WxIntCtrl(WxWidget, IntCtrl): events = [event.text]
 class WxListBox(WxWidget, wx.ListBox): events = [event.listbox]
@@ -158,6 +171,9 @@ class Spacer(WxWidget, containers.Spacer): pass
 
 class VBox(WxContainer, containers.VerticalBox): packer = sizer_packer
 class HBox(WxContainer, containers.HorizontalBox): packer = sizer_packer
+
+def HSpacer(size): return Spacer((size, 0))
+def VSpacer(size): return Spacer((0, size))
 
 def BoldFont(point_size, family=wx.FONTFAMILY_DEFAULT, style=wx.FONTSTYLE_NORMAL):
     return util.bold_font(point_size, family, style)

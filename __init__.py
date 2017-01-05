@@ -153,6 +153,7 @@ class WxGrid(WxWidget, Grid): packer = grid_packer
 class WxHtmlWindow(WxWidget, wx.html.HtmlWindow): pass
 class WxIntCtrl(WxWidget, IntCtrl): events = [event.text]
 class WxListBox(WxWidget, wx.ListBox): events = [event.listbox]
+
 class WxMenu(WxContainer,wx.Menu): packer = menu_packer
 class WxMenuBar(WxContainer, wx.MenuBar): packer = menubar_packer
 class WxNotebook(WxContainer, wx.Notebook): packer = notebook_pack
@@ -164,6 +165,10 @@ class WxTextCtrl(WxWidget, wx.TextCtrl): events = [event.text]
 class WxCheckListBox(WxWidget, wx.CheckListBox): 
     events = [event.checklistbox, event.listbox]
 
+class WxListCtrl(WxWidget, wx.ListCtrl):
+    packer = listctrl_packer
+    events = [event.listctrl_item_selection]
+    
 class DialogButtons(WxWidget, containers.DialogButtons):
     events = [event.button]
     packer = dlg_button_szr_packer

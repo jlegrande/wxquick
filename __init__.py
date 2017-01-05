@@ -22,13 +22,10 @@ def frame_packer(container, parent=None, show=False, center=True):
         child_packer(container, parent)
     except TypeError as e:
         import traceback
-        msg = "Non wx widget parent passed to child's constructor when packing " \
-              "frame. Parent was: " + str(parent)
-        print msg
         exc = traceback.format_exc()
         print exc
         wx.MessageDialog(None,
-                         '%s\n\n%s' % (msg, exc),
+                         '%s' % exc,
                          'Invalid Parent', wx.OK|wx.ICON_ERROR).ShowModal()
         raise
         
@@ -139,6 +136,13 @@ def grid_packer(grid, parent):
     for i, name in enumerate(colnames):
         grid.SetColLabelValue(i, name)
 
+def listctrl_packer(listctrl, parent):
+    cols = listctrl._kwargs.pop('columns', [])
+    meta.widg_pack(listctrl, parent)
+
+    for i, col in enumerate(cols):
+        listctrl.InsertColumn(i, col)
+    
 # Wrapper Classes
 
 class WxButton(WxWidget, wx.Button): events = [event.button]

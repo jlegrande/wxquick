@@ -7,7 +7,6 @@ def lb_cb_wrapper(listbox, callback, lbdata):
     def cb(evt):
         sel = evt.GetSelection()
         event_string = lbdata.falseval
-        
         if lbdata.condfunc(sel):
             event_string = lbdata.trueval
             
@@ -37,6 +36,16 @@ def text_ctrl_change_wrapper(text_ctrl, callback):
         callback('text_ctrl_changed', text_ctrl.GetValue(), evt)
     return cb
 
+def list_ctrl_item_selection_wrapper(list_ctrl, callback):
+    def cb(evt):
+        evt_str = 'selected'
+        idx = evt.GetIndex()
+        if not list_ctrl.IsSelected(idx):
+            evt_str = 'deselected'
+        callback(evt_str, idx, list_ctrl, evt)
+
+    return cb
+    
 # Event Handlers
 
 def checklistbox(listbox, callback):
@@ -61,3 +70,14 @@ def text(text_ctrl, callback):
     wx.EVT_TEXT(text_ctrl, 
                 text_ctrl.GetId(), 
                 text_ctrl_change_wrapper(text_ctrl, callback))
+
+def listctrl_item_selection(list_ctrl, callback):
+    wx.EVT_LIST_ITEM_SELECTED(list_ctrl,
+                              list_ctrl.GetId(),
+                              list_ctrl_item_selection_wrapper(list_ctrl,
+                                                               callback))
+
+    wx.EVT_LIST_ITEM_DESELECTED(list_ctrl,
+                                list_ctrl.GetId(),
+                                list_ctrl_item_selection_wrapper(list_ctrl,
+                                                                 callback))

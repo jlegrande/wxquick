@@ -9,6 +9,7 @@ def widg_init(widget, *args, **kw):
     widget.fg_color = kw.pop('fg_color', None)
     widget.bold = kw.pop('bold', None)
     widget.wrap = kw.pop('wrap', None)
+    widget.value = kw.pop('value', None)
     widget.callback = kw.pop('callback', None)
     widget._kwargs = kw
 
@@ -32,6 +33,9 @@ def widg_pack(widget, parent):
 
     if widget.wrap:
         widget.Wrap(widget.wrap)
+
+    if widget.value:
+        widget.SetValue(widget.value)
         
     for event in widget.events:
         if widget.callback:

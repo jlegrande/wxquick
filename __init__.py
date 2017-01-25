@@ -147,8 +147,10 @@ def listctrl_packer(listctrl, parent):
 
 class WxButton(WxWidget, wx.Button): events = [event.button]
 class WxChoice(WxWidget, wx.Choice): events = [event.choice]
+class WxDatePicker(WxWidget, wx.DatePickerCtrl): pass
 class WxDialog(WxContainer, wx.Dialog): packer = dialog_packer
 class WxFrame(WxContainer, wx.Frame): packer = frame_packer
+class WxGenericDatePicker(WxWidget, wx.GenericDatePickerCtrl): pass
 class WxGrid(WxWidget, Grid): packer = grid_packer
 class WxHtmlWindow(WxWidget, wx.html.HtmlWindow): pass
 class WxIntCtrl(WxWidget, IntCtrl): events = [event.text]
@@ -158,6 +160,7 @@ class WxMenu(WxContainer,wx.Menu): packer = menu_packer
 class WxMenuBar(WxContainer, wx.MenuBar): packer = menubar_packer
 class WxNotebook(WxContainer, wx.Notebook): packer = notebook_pack
 class WxPopupWindow(WxContainer, wx.PopupWindow): packer = popup_packer
+class WxRadioBox(WxWidget, wx.RadioBox): pass
 class WxStaticLine(WxWidget, wx.StaticLine): pass
 class WxStaticText(WxWidget, wx.StaticText): pass
 class WxTextCtrl(WxWidget, wx.TextCtrl): events = [event.text]
@@ -168,7 +171,11 @@ class WxCheckListBox(WxWidget, wx.CheckListBox):
 class WxListCtrl(WxWidget, wx.ListCtrl):
     packer = listctrl_packer
     events = [event.listctrl_item_selection]
-    
+
+class WxEditableListCtrl(WxWidget, util.EditableListCtrl):
+    packer = listctrl_packer
+    events = [event.listctrl_item_selection]
+
 class DialogButtons(WxWidget, containers.DialogButtons):
     events = [event.button]
     packer = dlg_button_szr_packer

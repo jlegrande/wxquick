@@ -142,10 +142,11 @@ def listctrl_packer(listctrl, parent):
 
     for i, col in enumerate(cols):
         listctrl.InsertColumn(i, col)
-    
+
 # Wrapper Classes
 
 class WxButton(WxWidget, wx.Button): events = [event.button]
+class WxCheckBox(WxWidget, wx.CheckBox): events = [event.checkbox]
 class WxChoice(WxWidget, wx.Choice): events = [event.choice]
 class WxDatePicker(WxWidget, wx.DatePickerCtrl): pass
 class WxDialog(WxContainer, wx.Dialog): packer = dialog_packer
@@ -163,6 +164,7 @@ class WxPopupWindow(WxContainer, wx.PopupWindow): packer = popup_packer
 class WxRadioBox(WxWidget, wx.RadioBox): pass
 class WxStaticLine(WxWidget, wx.StaticLine): pass
 class WxStaticText(WxWidget, wx.StaticText): pass
+class WxSlider(WxWidget, wx.Slider): events = [event.scroll]
 class WxTextCtrl(WxWidget, wx.TextCtrl): events = [event.text]
 
 class WxCheckListBox(WxWidget, wx.CheckListBox): 

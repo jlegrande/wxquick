@@ -10,6 +10,7 @@ def widg_init(widget, *args, **kw):
     widget.bold = kw.pop('bold', None)
     widget.wrap = kw.pop('wrap', None)
     widget.value = kw.pop('value', None)
+    widget.enable = kw.pop('enable', True)
     widget.callback = kw.pop('callback', None)
     widget._kwargs = kw
 
@@ -36,6 +37,9 @@ def widg_pack(widget, parent):
 
     if widget.value:
         widget.SetValue(widget.value)
+        
+    if not widget.enable:
+        widget.Disable()
         
     for event in widget.events:
         if widget.callback:

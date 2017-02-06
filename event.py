@@ -3,6 +3,7 @@ import collections
 
 ListBoxData = collections.namedtuple('ListBoxData', ['falseval', 'trueval', 'condfunc'])
 
+# Callback Wrappers
 def lb_cb_wrapper(listbox, callback, lbdata):
     def cb(evt):
         sel = evt.GetSelection()
@@ -45,8 +46,23 @@ def list_ctrl_item_selection_wrapper(list_ctrl, callback):
         callback(evt_str, idx, list_ctrl, evt)
 
     return cb
+
+def checkbox_cb_wrapper(checkbox, callback):
+    def cb(evt):
+        evt_str = 'checked'
+        if not evt.IsChecked():
+            evt_str = 'unchecked'
+
+        callback(evt_str, checkbox, evt)
+
+    return cb
+
+def slider_scroll_wrapper(slider, callback):
+    def cb(evt):
+        callback('scroll', slider.GetValue(), slider, evt)
+    return cb
     
-# Event Handlers
+# Wx Event Handlers
 
 def checklistbox(listbox, callback):
     lbdata = ListBoxData('unchecked', 'checked', listbox.IsChecked)
@@ -81,3 +97,10 @@ def listctrl_item_selection(list_ctrl, callback):
                                 list_ctrl.GetId(),
                                 list_ctrl_item_selection_wrapper(list_ctrl,
                                                                  callback))
+def checkbox(cbox, callback):
+    cbox.Bind(wx.EVT_CHECKBOX,
+                    checkbox_cb_wrapper(cbox, callback))
+                    
+def scroll(slider, callback):
+    slider.Bind(wx.EVT_SCROLL,
+                slider_scroll_wrapper(slider, callback))

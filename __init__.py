@@ -153,6 +153,7 @@ class WxDialog(WxContainer, wx.Dialog): packer = dialog_packer
 class WxFrame(WxContainer, wx.Frame): packer = frame_packer
 class WxGenericDatePicker(WxWidget, wx.GenericDatePickerCtrl): pass
 class WxGrid(WxWidget, Grid): packer = grid_packer
+class WxHtmlListBox(WxWidget, util.HtmlListBox): pass
 class WxHtmlWindow(WxWidget, wx.html.HtmlWindow): pass
 class WxIntCtrl(WxWidget, IntCtrl): events = [event.text]
 class WxListBox(WxWidget, wx.ListBox): events = [event.listbox]

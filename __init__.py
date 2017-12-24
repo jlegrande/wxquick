@@ -2,7 +2,7 @@ import wx
 import wx.html
 from wx.grid import Grid
 from wx.lib.intctrl import IntCtrl
-from wx.lib.masked import TextCtrl
+from wx.lib.masked import TextCtrl, TimeCtrl
 from wx.lib.scrolledpanel import ScrolledPanel
 from meta import WxContainer, WxWidget
 import util
@@ -73,7 +73,18 @@ def sizer_packer(container, parent):
 
         if container.item_gap > 0:
             container.AddSpacer(container.item_gap)
-    
+
+def gridbag_sizer_packer(container, parent):
+    container.wxClass.__init__(container, **container._kwargs)
+    for child in container.children:
+        child.pack(parent)
+        container.Add(child,
+                      child.grid_pos,
+                      child.grid_span,
+                      child.proportion,
+                      child.flag,
+                      child.border)
+
 def menu_packer(menu, frame):
     menu.title = menu._kwargs.get('title', '')
     menu.wxClass.__init__(menu)
@@ -145,6 +156,7 @@ def listctrl_packer(listctrl, parent):
 
 # Wrapper Classes
 
+# Widgets
 class WxButton(WxWidget, wx.Button): events = [event.button]
 class WxCheckBox(WxWidget, wx.CheckBox): events = [event.checkbox]
 class WxChoice(WxWidget, wx.Choice): events = [event.choice]
@@ -184,6 +196,10 @@ class DialogButtons(WxWidget, containers.DialogButtons):
     packer = dlg_button_szr_packer
 
 class MaskedTextCtrl(WxWidget, TextCtrl): pass
+class MaskedTimeCtrl(WxWidget, TimeCtrl): pass
+
+# Containers
+class WxGridBagSizer(WxContainer, wx.GridBagSizer): packer = gridbag_sizer_packer
 class ScrolledSizerPanel(WxContainer, ScrolledPanel): packer = sizer_layout_packer
 class SizerPanel(WxContainer, wx.Panel): packer = sizer_layout_packer
 class Spacer(WxWidget, containers.Spacer): pass
@@ -194,6 +210,7 @@ class HBox(WxContainer, containers.HorizontalBox): packer = sizer_packer
 def HSpacer(size): return Spacer((size, 0))
 def VSpacer(size): return Spacer((0, size))
 
+# Font
 def BoldFont(point_size, family=wx.FONTFAMILY_DEFAULT, style=wx.FONTSTYLE_NORMAL):
     return util.bold_font(point_size, family, style)
 
@@ -205,6 +222,7 @@ def Font(point_size,
          face=''):
     return util.font(point_size, family, style, weight, underline, face)
 
+# Convenience Dialogs
 def ErrorDialog(error, caption, parent=None):
     return wx.MessageDialog(parent, error, caption, wx.OK|wx.ICON_ERROR)
 

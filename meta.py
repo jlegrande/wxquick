@@ -5,6 +5,8 @@ def widg_init(widget, *args, **kw):
     widget.proportion = kw.pop('sizer_proportion', 0)
     widget.flag = kw.pop('sizer_flag', 0)
     widget.border = kw.pop('sizer_border', 0)
+    widget.grid_pos = kw.pop('grid_pos', None)
+    widget.grid_span = kw.pop('grid_span', wx.DefaultSpan)
     widget.font = kw.pop('font', None)
     widget.fg_color = kw.pop('fg_color', None)
     widget.bold = kw.pop('bold', None)

@@ -159,6 +159,7 @@ def listctrl_packer(listctrl, parent):
 # Widgets
 class WxButton(WxWidget, wx.Button): events = [event.button]
 class WxCheckBox(WxWidget, wx.CheckBox): events = [event.checkbox]
+class WxComboBox(WxWidget, wx.ComboBox): events = [event.combobox]
 class WxChoice(WxWidget, wx.Choice): events = [event.choice]
 class WxDatePicker(WxWidget, wx.DatePickerCtrl): pass
 class WxDialog(WxContainer, wx.Dialog): packer = dialog_packer

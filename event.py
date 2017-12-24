@@ -15,6 +15,12 @@ def lb_cb_wrapper(listbox, callback, lbdata):
 
     return cb
     
+def combobox_cb_wrapper(combobox, callback):
+    def cb(evt):
+        callback(evt.GetString(), evt.GetSelection(), combobox, evt)
+
+    return cb
+
 def menuitem_cb_wrapper(menuitem, callback):
     def cb(evt):
         callback(menuitem.GetLabel(), menuitem, evt)
@@ -68,6 +74,11 @@ def checklistbox(listbox, callback):
     lbdata = ListBoxData('unchecked', 'checked', listbox.IsChecked)
     cb = lb_cb_wrapper(listbox, callback, lbdata)
     wx.EVT_CHECKLISTBOX(listbox, listbox.GetId(), cb)
+
+def combobox(combobox, callback):
+    wx.EVT_COMBOBOX(combobox,
+                    combobox.GetId(),
+                    combobox_cb_wrapper(combobox, callback))
 
 def listbox(listbox, callback):
     lbdata = ListBoxData('unselected', 'selected', listbox.IsSelected)

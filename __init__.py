@@ -57,6 +57,17 @@ def sizer_layout_packer(container, parent=None):
     container.Layout()
     sizer.Fit(container)
 
+def scrolled_panel_packer(container, parent=None):
+    child_packer(container, parent)
+    
+    # Sizer layout expects only one child, which is the sizer
+    sizer = container.children[0]
+    container.SetSizer(sizer)
+    container.SetAutoLayout(True)
+    container.Layout()
+    sizer.Fit(container)
+    container.SetupScrolling()
+    
 def sizer_packer(container, parent):
     container.wxClass.__init__(container, **container._kwargs)
     for child in container.children:
@@ -201,7 +212,7 @@ class MaskedTimeCtrl(WxWidget, TimeCtrl): pass
 
 # Containers
 class WxGridBagSizer(WxContainer, wx.GridBagSizer): packer = gridbag_sizer_packer
-class ScrolledSizerPanel(WxContainer, ScrolledPanel): packer = sizer_layout_packer
+class ScrolledSizerPanel(WxContainer, ScrolledPanel): packer = scrolled_panel_packer
 class SizerPanel(WxContainer, wx.Panel): packer = sizer_layout_packer
 class Spacer(WxWidget, containers.Spacer): pass
 

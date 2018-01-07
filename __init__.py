@@ -246,3 +246,13 @@ def ConfirmDialog(error, caption, parent=None):
                             error,
                             caption,
                             wx.YES|wx.NO|wx.NO_DEFAULT|wx.ICON_WARNING)
+
+def DirDialog(prompt,
+              style=wx.DD_DEFAULT_STYLE,
+              parent=None,
+              defaultPath=None):
+    
+    if not defaultPath:
+        defaultPath = wx.StandardPaths.Get().GetDocumentsDir()
+        
+    return wx.DirDialog(parent, prompt, style=style, defaultPath=defaultPath)

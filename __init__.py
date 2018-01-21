@@ -72,6 +72,8 @@ def sizer_packer(container, parent):
     container.wxClass.__init__(container, **container._kwargs)
     for child in container.children:
         child.pack(parent)
+        if container.center_children:
+            child.flag |= wx.ALIGN_CENTER
         spacer_size = getattr(child, 'spacer_size', None)
         if not spacer_size:
             container.Add(child, child.proportion, child.flag, child.border)

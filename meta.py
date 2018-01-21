@@ -70,6 +70,7 @@ def ctr_init(container, *args, **kw):
     container.flag = kw.pop('sizer_flag', 0)
     container.border = kw.pop('sizer_border', 0)
     container.item_gap = kw.pop('item_gap', 0)
+    container.center_children = kw.pop('center_children', False)
     container._kwargs = kw
 
 def add_child(container, child):

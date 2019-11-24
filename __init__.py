@@ -1,5 +1,6 @@
 import wx
 import wx.html
+import wx.gizmos
 from wx.grid import Grid
 from wx.lib.intctrl import IntCtrl
 from wx.lib.masked import TextCtrl, TimeCtrl
@@ -67,9 +68,17 @@ def scrolled_panel_packer(container, parent=None):
     container.Layout()
     sizer.Fit(container)
     container.SetupScrolling()
+
+def static_box_sizer_packer(container, parent):
+    box = wx.StaticBox(parent, label=container._kwargs.pop('label'))
+    sizer_packer(container, parent, box)
     
-def sizer_packer(container, parent):
-    container.wxClass.__init__(container, **container._kwargs)
+def sizer_packer(container, parent, container_parent=None):
+    if container_parent:
+        container.wxClass.__init__(container, container_parent, **container._kwargs)
+    else:
+        container.wxClass.__init__(container, **container._kwargs)
+        
     for child in container.children:
         child.pack(parent)
         if container.center_children:
@@ -176,6 +185,7 @@ class WxComboBox(WxWidget, wx.ComboBox): events = [event.combobox]
 class WxChoice(WxWidget, wx.Choice): events = [event.choice]
 class WxDatePicker(WxWidget, wx.DatePickerCtrl): pass
 class WxDialog(WxContainer, wx.Dialog): packer = dialog_packer
+class WxEditableListBox(WxWidget, wx.gizmos.EditableListBox): pass 
 class WxFrame(WxContainer, wx.Frame): packer = frame_packer
 class WxGenericDatePicker(WxWidget, wx.GenericDatePickerCtrl): pass
 class WxGrid(WxWidget, Grid): packer = grid_packer
@@ -214,6 +224,8 @@ class MaskedTimeCtrl(WxWidget, TimeCtrl): pass
 
 # Containers
 class WxGridBagSizer(WxContainer, wx.GridBagSizer): packer = gridbag_sizer_packer
+class WxStaticBox(WxContainer, wx.StaticBox): packer = child_packer
+class WxStaticBoxSizer(WxContainer, wx.StaticBoxSizer): packer = static_box_sizer_packer
 class ScrolledSizerPanel(WxContainer, ScrolledPanel): packer = scrolled_panel_packer
 class SizerPanel(WxContainer, wx.Panel): packer = sizer_layout_packer
 class Spacer(WxWidget, containers.Spacer): pass

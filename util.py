@@ -21,10 +21,11 @@ class EditableListCtrl(wx.ListCtrl, TextEditMixin):
         wx.ListCtrl.__init__(self, *args, **kwargs)
         TextEditMixin.__init__(self)
 
+# BUG: Discontigous selection is broken on MacOS        
 class HtmlListBox(wx.HtmlListBox):
     def __init__(self, *args, **kwargs):
         self._render_item = kwargs.pop('render_item')
-        self.data = kwargs.pop('data', {})
+        self.data = kwargs.pop('data', [])
         wx.HtmlListBox.__init__(self, *args, **kwargs)
 
     def OnGetItem(self, n):

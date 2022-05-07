@@ -1,4 +1,5 @@
 import wx
+import wx.html
 from wx.lib.mixins.listctrl import TextEditMixin
 
 def bold_font(point_size,
@@ -22,7 +23,7 @@ class EditableListCtrl(wx.ListCtrl, TextEditMixin):
         TextEditMixin.__init__(self)
 
 # BUG: Discontigous selection is broken on MacOS        
-class HtmlListBox(wx.HtmlListBox):
+class HtmlListBox(wx.html.HtmlListBox):
     def __init__(self, *args, **kwargs):
         self._render_item = kwargs.pop('render_item')
         self.data = kwargs.pop('data', [])

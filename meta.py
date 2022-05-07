@@ -1,94 +1,84 @@
 import wx
+import inspect
 
-def widg_init(widget, *args, **kw):
-    widget._args = args
-    widget.proportion = kw.pop('sizer_proportion', 0)
-    widget.flag = kw.pop('sizer_flag', 0)
-    widget.border = kw.pop('sizer_border', 0)
-    widget.grid_pos = kw.pop('grid_pos', None)
-    widget.grid_span = kw.pop('grid_span', wx.DefaultSpan)
-    widget.font = kw.pop('font', None)
-    widget.fg_color = kw.pop('fg_color', None)
-    widget.bold = kw.pop('bold', None)
-    widget.wrap = kw.pop('wrap', None)
-    widget.value = kw.pop('value', None)
-    widget.enable = kw.pop('enable', True)
-    widget.callback = kw.pop('callback', None)
-    widget._kwargs = kw
+class WxQuickBase(object):
+    @property
+    def wx_class(self):
+        wxquick_base = type(self)
+        for base in inspect.getmro(wxquick_base):
+            if issubclass(base, wx.Object) and base != wxquick_base:
+                return base
 
-def widg_pack(widget, parent):
-    if widget._kwargs:
-        widget.wxClass.__init__(widget, parent, *widget._args, 
-                                **widget._kwargs)
-    else:
-        widget.wxClass.__init__(widget, parent, *widget._args)
+        raise NotImplementedError('No wx class specified.')
 
-    if widget.font:
-        widget.SetFont(widget.font)
-
-    if widget.fg_color:
-        widget.SetForegroundColour(widget.fg_color)
-
-    if widget.bold:
-        font = widget.GetFont()
-        font.SetWeight(wx.FONTWEIGHT_BOLD)
-        widget.SetFont(font)
-
-    if widget.wrap:
-        widget.Wrap(widget.wrap)
-
-    if widget.value:
-        widget.SetValue(widget.value)
+    def pack(self, parent=None):
+        '''Default packing method'''
+        self.wx_class.__init__(self, parent, **self._kwargs)
+        for child in self.children:
+            child.pack(self)
         
-    if not widget.enable:
-        widget.Disable()
-        
-    for event in widget.events:
-        if widget.callback:
-            event(widget, widget.callback)
-        
-class MetaWxWidget(type):
-    def __new__(cls, clsname, bases, attrs):
-        if clsname != 'WxWidget':
-            attrs['__init__'] = widg_init
-            attrs['pack'] = attrs.get('packer', widg_pack)
-            attrs['events'] = attrs.get('events', [])
-                
-        return type.__new__(cls, clsname, bases, attrs)
+class WxQuickContainer(WxQuickBase):
+    def __init__(self, *args, **kw):
+        '''Base class for wx container controls'''
+        self.children = list(args)
+        self.proportion = kw.pop('sizer_proportion', 0)
+        self.flag = kw.pop('sizer_flag', 0)
+        self.border = kw.pop('sizer_border', 0)
+        self.item_gap = kw.pop('item_gap', 0)
+        self.center_children = kw.pop('center_children', False)
+        self._kwargs = kw
 
-    def __init__(self, clsname, bases, attrs):
-        for base in bases:
-            if base != WxWidget:
-                self.wxClass = base
+    def add_child(self, child):
+        self.children.append(child)
+        return self
 
-        type.__init__(self, clsname, bases, attrs)
+class WxQuickWidget(WxQuickBase):
+    def __init__(self, *args, **kw):
+        self._args = args
+        self.proportion = kw.pop('sizer_proportion', 0)
+        self.flag = kw.pop('sizer_flag', 0)
+        self.border = kw.pop('sizer_border', 0)
+        self.grid_pos = kw.pop('grid_pos', None)
+        self.grid_span = kw.pop('grid_span', wx.DefaultSpan)
+        self.font = kw.pop('font', None)
+        self.fg_color = kw.pop('fg_color', None)
+        self.bold = kw.pop('bold', None)
+        self.wrap = kw.pop('wrap', None)
+        self.value = kw.pop('value', None)
+        self.enable = kw.pop('enable', True)
+        self.callback = kw.pop('callback', None)
+        self._kwargs = kw
+
+    def pack(self, parent):
+        if self._kwargs:
+            self.wx_class.__init__(self, parent, *self._args, **self._kwargs)
+        else:
+            self.wx_class.__init__(self, parent, *self._args)
+
+        if self.font:
+            self.SetFont(self.font)
+
+        if self.fg_color:
+            self.SetForegroundColour(self.fg_color)
+
+        if self.bold:
+            font = self.GetFont()
+            font.SetWeight(wx.FONTWEIGHT_BOLD)
+            self.SetFont(font)
+
+        if self.wrap:
+            self.Wrap(self.wrap)
+
+        if self.value:
+            self.SetValue(self.value)
+
+        if not self.enable:
+            self.Disable()
+
+        for event in getattr(self, 'events', []):
+            if self.callback:
+                event(self, self.callback)
 
 
-def ctr_init(container, *args, **kw):
-    container.children = list(args)
-    container.proportion = kw.pop('sizer_proportion', 0)
-    container.flag = kw.pop('sizer_flag', 0)
-    container.border = kw.pop('sizer_border', 0)
-    container.item_gap = kw.pop('item_gap', 0)
-    container.center_children = kw.pop('center_children', False)
-    container._kwargs = kw
 
-def add_child(container, child):
-    container.children.append(child)
-    return container
 
-class MetaWxContainer(type):
-    def __new__(cls, clsname, bases, attrs):
-        if clsname != 'WxContainer':
-            attrs['__init__'] = ctr_init
-            attrs['__add__'] = add_child
-            attrs['pack'] = attrs.get('packer')
-        return type.__new__(cls, clsname, bases, attrs)
-
-    def __init__(self, clsname, bases, attrs):
-        for base in bases:
-            if base != WxContainer:
-                self.wxClass = base
-
-class WxContainer: __metaclass__ = MetaWxContainer
-class WxWidget: __metaclass__ = MetaWxWidget

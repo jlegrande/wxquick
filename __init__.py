@@ -1,237 +1,232 @@
 import wx
+import wx.adv
 import wx.html
 import wx.gizmos
 from wx.grid import Grid
 from wx.lib.intctrl import IntCtrl
 from wx.lib.masked import TextCtrl, TimeCtrl
 from wx.lib.scrolledpanel import ScrolledPanel
-from meta import WxContainer, WxWidget
-import util
-import containers
-import event
+from .meta import WxQuickContainer, WxQuickWidget
+from . import util
+from . import containers
+from . import event
 
-# Container Packing functions
 
-def child_packer(container, parent=None):
-    container.wxClass.__init__(container, parent, **container._kwargs)
+class ListCtrlPacker(object):
+    def pack(self, parent):
+        cols = self._kwargs.pop('columns', [])
+        super().pack(parent)
 
-    for child in container.children:
-        child.pack(container)
-        
-def frame_packer(container, parent=None, show=False, center=True):
-    try:
-        child_packer(container, parent)
-    except TypeError as e:
-        import traceback
-        exc = traceback.format_exc()
-        print exc
-        wx.MessageDialog(None,
-                         '%s' % exc,
-                         'Invalid Parent', wx.OK|wx.ICON_ERROR).ShowModal()
-        raise
-        
-    #container.Fit()
-    if center:
-        container.CenterOnScreen()
-        
-    if show:
-        container.Show()
+        for i, col in enumerate(cols):
+            self.InsertColumn(i, col)
 
-def notebook_pack(container, parent=None, show=False):
-    container.wxClass.__init__(container, parent, **container._kwargs)
-    for child in container.children:
-        text = child._kwargs.pop('tab_name')
-        if not text:
-            print '[WARNING] Child of notebook does not have a tab name.'
-            continue
-        selected = child._kwargs.pop('tab_selected', False)
-        child.pack(container)
-        container.AddPage(child, text, selected)
-
-def sizer_layout_packer(container, parent=None):
-    child_packer(container, parent)
-    
-    # Sizer layout expects only one child, which is the sizer
-    sizer = container.children[0]
-    container.SetSizer(sizer)
-    container.SetAutoLayout(True)
-    container.Layout()
-    sizer.Fit(container)
-
-def scrolled_panel_packer(container, parent=None):
-    child_packer(container, parent)
-    
-    # Sizer layout expects only one child, which is the sizer
-    sizer = container.children[0]
-    container.SetSizer(sizer)
-    container.SetAutoLayout(True)
-    container.Layout()
-    sizer.Fit(container)
-    container.SetupScrolling()
-
-def static_box_sizer_packer(container, parent):
-    box = wx.StaticBox(parent, label=container._kwargs.pop('label'))
-    sizer_packer(container, parent, box)
-    
-def sizer_packer(container, parent, container_parent=None):
-    if container_parent:
-        container.wxClass.__init__(container, container_parent, **container._kwargs)
-    else:
-        container.wxClass.__init__(container, **container._kwargs)
-        
-    for child in container.children:
-        child.pack(parent)
-        if container.center_children:
-            child.flag |= wx.ALIGN_CENTER
-        spacer_size = getattr(child, 'spacer_size', None)
-        if not spacer_size:
-            container.Add(child, child.proportion, child.flag, child.border)
+class WxSizerMixin(WxQuickContainer):
+    def pack(self, parent, container_parent=None):
+        if container_parent:
+            self.wx_class.__init__(self, container_parent, **self._kwargs)
         else:
-            try:
-                w, h = spacer_size
-                container.Add(w, h, 0)
-            except TypeError:
-                container.AddSpacer(spacer_size)
+            self.wx_class.__init__(self, **self._kwargs)
 
-        if container.item_gap > 0:
-            container.AddSpacer(container.item_gap)
+        for child in self.children:
+            child.pack(parent)
+            if self.center_children:
+                child.flag |= wx.ALIGN_CENTER
+            spacer_size = getattr(child, 'spacer_size', None)
+            if not spacer_size:
+                self.Add(child, child.proportion, child.flag, child.border)
+            else:
+                try:
+                    w, h = spacer_size
+                    self.Add(w, h, 0)
+                except TypeError:
+                    self.AddSpacer(spacer_size)
 
-def gridbag_sizer_packer(container, parent):
-    container.wxClass.__init__(container, **container._kwargs)
-    for child in container.children:
-        child.pack(parent)
-        container.Add(child,
-                      child.grid_pos,
-                      child.grid_span,
-                      child.proportion,
-                      child.flag,
-                      child.border)
-
-def menu_packer(menu, frame):
-    menu.title = menu._kwargs.get('title', '')
-    menu.wxClass.__init__(menu)
-    for item_id, item_text, item_help, callback in menu.children:
-        menuitem = menu.Append(item_id, item_text, item_help)
-        frame.Bind(wx.EVT_MENU, event.menuitem_cb_wrapper(menuitem, callback), menuitem)
-
-def menubar_packer(menubar, frame):
-    frame.CreateStatusBar()
-    menubar.wxClass.__init__(menubar)
-    for menu in menubar.children:
-        menu.pack(frame)
-        menubar.Append(menu, menu.title)
-
-    frame.SetMenuBar(menubar)
-
-def dialog_packer(dialog, parent=None, center=True):
-    child_packer(dialog, parent)
-    if len(dialog.children) == 1:
-        try:
-            dialog.SetSizer(dialog.children[0])
-            dialog.SetAutoLayout(True)
-            if not dialog._kwargs.get('size'):
-                dialog.Fit()
-        except TypeError:
-            pass
-
-    if center:
-        dialog.CenterOnParent()
-        
-def dlg_button_szr_packer(butt_szr, parent):
-    butt_szr.wxClass.__init__(butt_szr, parent, *butt_szr._args)
-    cb = butt_szr.callback
-    if cb:
-        child_sizer = butt_szr.GetChildren()[0].GetSizer()
-        buttons = [c.GetWindow() for c in child_sizer.GetChildren() if c.IsWindow()]
-
-        for event in butt_szr.events:
-            for butt in buttons:
-                event(butt, cb)
-
-def popup_packer(popup, parent=None):
-    center = popup._kwargs.pop('center', False)
-    child_packer(popup, parent)
-
-    if center:
-        if parent:
-            popup.CenterOnParent()
-        else:
-            res = wx.GetDisplaySize()
-            center = [res.GetWidth()/2, res.GetHeight()/2]
-            size = popup.GetSize()
-            popup.SetPosition((center[0]/2 - size.GetWidth()/2,
-                              center[1]/2 - size.GetHeight()/2))
-def grid_packer(grid, parent):
-    rows, cols = grid._kwargs.pop('grid_size', (1,1))
-    colnames = grid._kwargs.pop('columns', [])
-    grid.wxClass.__init__(grid, parent, *grid._args, **grid._kwargs)
-    grid.CreateGrid(rows, cols)
-    for i, name in enumerate(colnames):
-        grid.SetColLabelValue(i, name)
-
-def listctrl_packer(listctrl, parent):
-    cols = listctrl._kwargs.pop('columns', [])
-    meta.widg_pack(listctrl, parent)
-
-    for i, col in enumerate(cols):
-        listctrl.InsertColumn(i, col)
+            if self.item_gap > 0:
+                self.AddSpacer(self.item_gap)
 
 # Wrapper Classes
 
 # Widgets
-class WxButton(WxWidget, wx.Button): events = [event.button]
-class WxCheckBox(WxWidget, wx.CheckBox): events = [event.checkbox]
-class WxComboBox(WxWidget, wx.ComboBox): events = [event.combobox]
-class WxChoice(WxWidget, wx.Choice): events = [event.choice]
-class WxDatePicker(WxWidget, wx.DatePickerCtrl): pass
-class WxDialog(WxContainer, wx.Dialog): packer = dialog_packer
-class WxEditableListBox(WxWidget, wx.gizmos.EditableListBox): pass 
-class WxFrame(WxContainer, wx.Frame): packer = frame_packer
-class WxGenericDatePicker(WxWidget, wx.GenericDatePickerCtrl): pass
-class WxGrid(WxWidget, Grid): packer = grid_packer
-class WxHtmlListBox(WxWidget, util.HtmlListBox): pass
-class WxHtmlWindow(WxWidget, wx.html.HtmlWindow): pass
-class WxIntCtrl(WxWidget, IntCtrl): events = [event.text]
-class WxListBox(WxWidget, wx.ListBox): events = [event.listbox]
+class WxButton(WxQuickWidget, wx.Button): events = [event.button]
+class WxCheckBox(WxQuickWidget, wx.CheckBox): events = [event.checkbox]
+class WxComboBox(WxQuickWidget, wx.ComboBox): events = [event.combobox]
+class WxChoice(WxQuickWidget, wx.Choice): events = [event.choice]
+class WxDatePicker(WxQuickWidget, wx.adv.DatePickerCtrl): pass
+class WxEditableListBox(WxQuickWidget, wx.adv.EditableListBox): pass 
+#class WxGenericDatePicker(WxQuickWidget, wx.GenericDatePickerCtrl): pass
 
-class WxMenu(WxContainer,wx.Menu): packer = menu_packer
-class WxMenuBar(WxContainer, wx.MenuBar): packer = menubar_packer
-class WxNotebook(WxContainer, wx.Notebook): packer = notebook_pack
-class WxPopupWindow(WxContainer, wx.PopupWindow): packer = popup_packer
-class WxRadioBox(WxWidget, wx.RadioBox): pass
-class WxStaticLine(WxWidget, wx.StaticLine): pass
-class WxStaticText(WxWidget, wx.StaticText): pass
-class WxSlider(WxWidget, wx.Slider): events = [event.scroll]
-class WxTextCtrl(WxWidget, wx.TextCtrl): events = [event.text]
+class WxGrid(WxQuickWidget, Grid):
+    def pack(self, parent):
+        rows, cols = self._kwargs.pop('grid_size', (1,1))
+        colnames = self._kwargs.pop('columns', [])
+        self.wx_class.__init__(self, parent, *self._args, **self._kwargs)
+        self.CreateSelf(rows, cols)
+        for i, name in enumerate(colnames):
+            self.SetColLabelValue(i, name)
 
-class WxCheckListBox(WxWidget, wx.CheckListBox): 
+class WxHtmlListBox(WxQuickWidget, util.HtmlListBox): pass
+class WxHtmlWindow(WxQuickWidget, wx.html.HtmlWindow): pass
+class WxIntCtrl(WxQuickWidget, IntCtrl): events = [event.text]
+class WxListBox(WxQuickWidget, wx.ListBox): events = [event.listbox]
+class WxRadioBox(WxQuickWidget, wx.RadioBox): pass
+class WxStaticLine(WxQuickWidget, wx.StaticLine): pass
+class WxStaticText(WxQuickWidget, wx.StaticText): pass
+class WxSlider(WxQuickWidget, wx.Slider): events = [event.scroll]
+class WxTextCtrl(WxQuickWidget, wx.TextCtrl): events = [event.text]
+
+class WxCheckListBox(WxQuickWidget, wx.CheckListBox): 
     events = [event.checklistbox, event.listbox]
 
-class WxListCtrl(WxWidget, wx.ListCtrl):
-    packer = listctrl_packer
+class WxListCtrl(WxQuickWidget, wx.ListCtrl, ListCtrlPacker):
     events = [event.listctrl_item_selection]
 
-class WxEditableListCtrl(WxWidget, util.EditableListCtrl):
-    packer = listctrl_packer
+class WxEditableListCtrl(WxQuickWidget, util.EditableListCtrl, ListCtrlPacker):
     events = [event.listctrl_item_selection]
 
-class DialogButtons(WxWidget, containers.DialogButtons):
+class DialogButtons(WxQuickWidget, containers.DialogButtons):
     events = [event.button]
-    packer = dlg_button_szr_packer
 
-class MaskedTextCtrl(WxWidget, TextCtrl): pass
-class MaskedTimeCtrl(WxWidget, TimeCtrl): pass
+    def pack(self, parent):
+        self.wx_class.__init__(self, parent, **self._kwargs)
+        cb = self.callback
+        if not cb:
+            return
+        
+        child_sizer = self.GetChildren()[0].GetSizer()
+        buttons = [c.GetWindow() for c in child_sizer.GetChildren() if c.IsWindow()]
+
+        for event in self.events:
+            for butt in buttons:
+                event(butt, cb)
+
+class MaskedTextCtrl(WxQuickWidget, TextCtrl): pass
+class MaskedTimeCtrl(WxQuickWidget, TimeCtrl): pass
 
 # Containers
-class WxGridBagSizer(WxContainer, wx.GridBagSizer): packer = gridbag_sizer_packer
-class WxStaticBox(WxContainer, wx.StaticBox): packer = child_packer
-class WxStaticBoxSizer(WxContainer, wx.StaticBoxSizer): packer = static_box_sizer_packer
-class ScrolledSizerPanel(WxContainer, ScrolledPanel): packer = scrolled_panel_packer
-class SizerPanel(WxContainer, wx.Panel): packer = sizer_layout_packer
-class Spacer(WxWidget, containers.Spacer): pass
+class WxDialog(WxQuickContainer, wx.Dialog):
+    def pack(self, parent=None, center=True):
+        super().pack(parent)
+        if len(self.children) == 1:
+            try:
+                self.SetSizer(self.children[0])
+                self.SetAutoLayout(True)
+                if not self._kwargs.get('size'):
+                    self.Fit()
+            except TypeError:
+                pass
 
-class VBox(WxContainer, containers.VerticalBox): packer = sizer_packer
-class HBox(WxContainer, containers.HorizontalBox): packer = sizer_packer
+        if center:
+            self.CenterOnParent()
+
+class WxGridBagSizer(WxQuickContainer, wx.GridBagSizer):
+    def pack(self, parent):
+        self.wx_class.__init__(self, **self._kwargs)
+        for child in self.children:
+            child.pack(parent)
+            self.Add(child,
+                     child.grid_pos,
+                     child.grid_span,
+                     child.proportion,
+                     child.flag,
+                     child.border)
+
+class WxFrame(WxQuickContainer, wx.Frame):
+    def pack(self, parent=None, show=False, center=True):
+        try:
+            super().pack(parent)
+        except TypeError as e:
+            import traceback
+            exc = traceback.format_exc()
+            print(exc)
+            wx.MessageDialog(None,
+                             '%s' % exc,
+                             'Invalid Parent', wx.OK|wx.ICON_ERROR).ShowModal()
+            raise
+
+        #self.Fit()
+        if center:
+            self.CenterOnScreen()
+
+        if show:
+            self.Show()
+    
+class WxMenu(WxQuickContainer, wx.Menu):
+    def pack(self, frame):
+        self.title = self._kwargs.get('title', '')
+        self.wx_class.__init__(self)
+        for item_id, item_text, item_help, callback in self.children:
+            selfitem = self.Append(item_id, item_text, item_help)
+            frame.Bind(wx.EVT_SELF, event.selfitem_cb_wrapper(selfitem, callback), selfitem)
+    
+class WxMenuBar(WxQuickContainer, wx.MenuBar):
+    def pack(self, frame):
+        frame.CreateStatusBar()
+        self.wx_class.__init__(self)
+        for menu in self.children:
+            menu.pack(frame)
+            self.Append(menu, menu.title)
+
+        frame.SetMenuBar(self)
+    
+class WxNotebook(WxQuickContainer, wx.Notebook):
+    def notebook_pack(self, parent=None, show=False):
+        self.wx_class.__init__(self, parent, **self._kwargs)
+        for child in self.children:
+            text = child._kwargs.pop('tab_name')
+            if not text:
+                print('[WARNING] Child of notebook does not have a tab name.')
+                continue
+            selected = child._kwargs.pop('tab_selected', False)
+            child.pack(self)
+            self.AddPage(child, text, selected)
+    
+class WxPopupWindow(WxQuickContainer, wx.PopupWindow):
+    def pack(self, parent=None):
+        center = self._kwargs.pop('center', False)
+        super().pack(parent)
+
+        if center:
+            if parent:
+                self.CenterOnParent()
+            else:
+                res = wx.GetDisplaySize()
+                center = [res.GetWidth()/2, res.GetHeight()/2]
+                size = self.GetSize()
+                self.SetPosition((center[0]/2 - size.GetWidth()/2,
+                                  center[1]/2 - size.GetHeight()/2))
+
+class WxStaticBox(WxQuickContainer, wx.StaticBox): pass
+class WxStaticBoxSizer(WxSizerMixin, wx.StaticBoxSizer):
+    def pack(self, parent):
+        box = wx.StaticBox(parent, label=self._kwargs.pop('label'))
+        super().pack(parent, box)
+
+class ScrolledSizerPanel(WxQuickContainer, ScrolledPanel):
+    def pack(self, parent=None):
+        super().pack(parent)
+
+        # Sizer layout expects only one child, which is the sizer
+        sizer = self.children[0]
+        self.SetSizer(sizer)
+        self.SetAutoLayout(True)
+        self.Layout()
+        sizer.Fit(self)
+        self.SetupScrolling()
+
+class SizerPanel(WxQuickContainer, wx.Panel):
+    def pack(self, parent=None):
+        super().pack(parent)
+
+        # Sizer layout expects only one child, which is the sizer
+        sizer = self.children[0]
+        self.SetSizer(sizer)
+        self.SetAutoLayout(True)
+        self.Layout()
+        sizer.Fit(self)
+
+class Spacer(WxQuickWidget, containers.Spacer): pass
+class VBox(WxSizerMixin, containers.VerticalBox): pass
+class HBox(WxSizerMixin, containers.HorizontalBox): pass
 
 def HSpacer(size): return Spacer((size, 0))
 def VSpacer(size): return Spacer((0, size))

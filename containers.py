@@ -8,7 +8,7 @@ class HorizontalBox(wx.BoxSizer):
     def __init__(self):
         wx.BoxSizer.__init__(self, wx.HORIZONTAL)
 
-class Spacer(object):
+class Spacer(wx.Object):
     def __init__(self, parent, size):
         self.spacer_size = size
 

@@ -110,7 +110,7 @@ def listctrl_item_selection(list_ctrl, callback):
                                                                  callback))
 def checkbox(cbox, callback):
     cbox.Bind(wx.EVT_CHECKBOX,
-                    checkbox_cb_wrapper(cbox, callback))
+              checkbox_cb_wrapper(cbox, callback))
                     
 def scroll(slider, callback):
     slider.Bind(wx.EVT_SCROLL,

@@ -155,8 +155,8 @@ class WxMenu(WxQuickContainer, wx.Menu):
         self.title = self._kwargs.get('title', '')
         self.wx_class.__init__(self)
         for item_id, item_text, item_help, callback in self.children:
-            selfitem = self.Append(item_id, item_text, item_help)
-            frame.Bind(wx.EVT_SELF, event.selfitem_cb_wrapper(selfitem, callback), selfitem)
+            menuitem = self.Append(item_id, item_text, item_help)
+            frame.Bind(wx.EVT_SELF, event.menuitem_cb_wrapper(menuitem, callback), menuitem)
     
 class WxMenuBar(WxQuickContainer, wx.MenuBar):
     def pack(self, frame):

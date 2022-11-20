@@ -3,7 +3,12 @@ import collections
 
 ListBoxData = collections.namedtuple('ListBoxData', ['falseval', 'trueval', 'condfunc'])
 
+#
+#
 # Callback Wrappers
+#
+#
+
 def lb_cb_wrapper(listbox, callback, lbdata):
     def cb(evt):
         sel = evt.GetSelection()
@@ -67,8 +72,12 @@ def slider_scroll_wrapper(slider, callback):
     def cb(evt):
         callback('scroll', slider.GetValue(), slider, evt)
     return cb
-    
+
+#
+#
 # Wx Event Handlers
+#
+#
 
 def checklistbox(listbox, callback):
     lbdata = ListBoxData('unchecked', 'checked', listbox.IsChecked)

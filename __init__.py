@@ -60,7 +60,7 @@ class WxGrid(WxQuickWidget, Grid):
         rows, cols = self._kwargs.pop('grid_size', (1,1))
         colnames = self._kwargs.pop('columns', [])
         self.wx_class.__init__(self, parent, *self._args, **self._kwargs)
-        self.CreateSelf(rows, cols)
+        self.CreateGrid(rows, cols)
         for i, name in enumerate(colnames):
             self.SetColLabelValue(i, name)
 
@@ -95,9 +95,9 @@ class DialogButtons(WxQuickWidget, containers.DialogButtons):
         child_sizer = self.GetChildren()[0].GetSizer()
         buttons = [c.GetWindow() for c in child_sizer.GetChildren() if c.IsWindow()]
 
-        for event in self.events:
+        for evt in self.events:
             for butt in buttons:
-                event(butt, cb)
+                evt(butt, cb)
 
 class MaskedTextCtrl(WxQuickWidget, TextCtrl): pass
 class MaskedTimeCtrl(WxQuickWidget, TimeCtrl): pass
@@ -134,7 +134,7 @@ class WxFrame(WxQuickContainer, wx.Frame):
     def pack(self, parent=None, show=False, center=True):
         try:
             super().pack(parent)
-        except TypeError as e:
+        except TypeError:
             import traceback
             exc = traceback.format_exc()
             print(exc)

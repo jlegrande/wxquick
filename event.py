@@ -95,7 +95,7 @@ def listbox(listbox, callback):
     wx.EVT_LISTBOX(listbox, listbox.GetId(), cb)
 
 def button(button, callback):
-    wx.EVT_BUTTON(button, button.GetId(), button_cb_wrapper(button, callback))
+    button.Bind(wx.EVT_BUTTON, button_cb_wrapper(button, callback))
 
 def choice(wxchoice, callback):
     wx.EVT_CHOICE(wxchoice,

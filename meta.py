@@ -28,9 +28,10 @@ class WxQuickContainer(WxQuickBase):
         self.center_children = kw.pop('center_children', False)
         self._kwargs = kw
 
-    def add_child(self, child):
+    def __add__(self, child):
         self.children.append(child)
         return self
+
 
 class WxQuickWidget(WxQuickBase):
     def __init__(self, *args, **kw):

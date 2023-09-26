@@ -53,7 +53,7 @@ class WxComboBox(WxQuickWidget, wx.ComboBox): events = [event.combobox]
 class WxChoice(WxQuickWidget, wx.Choice): events = [event.choice]
 class WxDatePicker(WxQuickWidget, wx.adv.DatePickerCtrl): pass
 class WxEditableListBox(WxQuickWidget, wx.adv.EditableListBox): pass 
-#class WxGenericDatePicker(WxQuickWidget, wx.GenericDatePickerCtrl): pass
+class WxGenericDatePicker(WxQuickWidget, wx.adv.DatePickerCtrl): pass
 
 class WxGrid(WxQuickWidget, Grid):
     def pack(self, parent):
@@ -77,17 +77,17 @@ class WxTextCtrl(WxQuickWidget, wx.TextCtrl): events = [event.text]
 class WxCheckListBox(WxQuickWidget, wx.CheckListBox): 
     events = [event.checklistbox, event.listbox]
 
-class WxListCtrl(WxQuickWidget, wx.ListCtrl, ListCtrlPacker):
+class WxListCtrl(ListCtrlPacker, WxQuickWidget, wx.ListCtrl):
     events = [event.listctrl_item_selection]
 
-class WxEditableListCtrl(WxQuickWidget, util.EditableListCtrl, ListCtrlPacker):
+class WxEditableListCtrl(ListCtrlPacker, WxQuickWidget, util.EditableListCtrl):
     events = [event.listctrl_item_selection]
 
 class DialogButtons(WxQuickWidget, containers.DialogButtons):
     events = [event.button]
 
     def pack(self, parent):
-        self.wx_class.__init__(self, parent, **self._kwargs)
+        self.wx_class.__init__(self, parent, *self._args)
         cb = self.callback
         if not cb:
             return

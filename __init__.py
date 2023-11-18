@@ -3,10 +3,11 @@ import wx.adv
 import wx.html
 import wx.gizmos
 from wx.grid import Grid
+from wx.lib.stattext import GenStaticText
 from wx.lib.intctrl import IntCtrl
 from wx.lib.masked import TextCtrl, TimeCtrl
 from wx.lib.scrolledpanel import ScrolledPanel
-from .meta import WxQuickContainer, WxQuickWidget
+from .meta import WxSizerMixin, WxQuickContainer, WxQuickWidget
 from . import util
 from . import containers
 from . import event
@@ -20,29 +21,6 @@ class ListCtrlPacker(object):
         for i, col in enumerate(cols):
             self.InsertColumn(i, col)
 
-class WxSizerMixin(WxQuickContainer):
-    def pack(self, parent, container_parent=None):
-        if container_parent:
-            self.wx_class.__init__(self, container_parent, **self._kwargs)
-        else:
-            self.wx_class.__init__(self, **self._kwargs)
-
-        for child in self.children:
-            child.pack(parent)
-            if self.center_children:
-                child.flag |= wx.ALIGN_CENTER
-            spacer_size = getattr(child, 'spacer_size', None)
-            if not spacer_size:
-                self.Add(child, child.proportion, child.flag, child.border)
-            else:
-                try:
-                    w, h = spacer_size
-                    self.Add(w, h, 0)
-                except TypeError:
-                    self.AddSpacer(spacer_size)
-
-            if self.item_gap > 0:
-                self.AddSpacer(self.item_gap)
 
 # Wrapper Classes
 
@@ -54,6 +32,7 @@ class WxChoice(WxQuickWidget, wx.Choice): events = [event.choice]
 class WxDatePicker(WxQuickWidget, wx.adv.DatePickerCtrl): pass
 class WxEditableListBox(WxQuickWidget, wx.adv.EditableListBox): pass 
 class WxGenericDatePicker(WxQuickWidget, wx.adv.DatePickerCtrl): pass
+class WxGenStaticText(WxQuickWidget, GenStaticText): pass
 
 class WxGrid(WxQuickWidget, Grid):
     def pack(self, parent):
@@ -69,6 +48,17 @@ class WxHtmlWindow(WxQuickWidget, wx.html.HtmlWindow): pass
 class WxIntCtrl(WxQuickWidget, IntCtrl): events = [event.text]
 class WxListBox(WxQuickWidget, wx.ListBox): events = [event.listbox]
 class WxRadioBox(WxQuickWidget, wx.RadioBox): pass
+
+class WxStaticBitmap(WxQuickWidget, wx.StaticBitmap):
+    def pack(self, parent):
+        path = self._kwargs.pop('path')
+        if path:
+            bitmap_type = self._kwargs.pop('bmptype', wx.BITMAP_TYPE_JPEG)
+            img = wx.Image(path, bitmap_type)
+            self._kwargs['bitmap'] = img.ConvertToBitmap()
+            
+        super(WxStaticBitmap, self).pack(parent)
+
 class WxStaticLine(WxQuickWidget, wx.StaticLine): pass
 class WxStaticText(WxQuickWidget, wx.StaticText): pass
 class WxSlider(WxQuickWidget, wx.Slider): events = [event.scroll]
@@ -156,7 +146,7 @@ class WxMenu(WxQuickContainer, wx.Menu):
         self.wx_class.__init__(self)
         for item_id, item_text, item_help, callback in self.children:
             menuitem = self.Append(item_id, item_text, item_help)
-            frame.Bind(wx.EVT_SELF, event.menuitem_cb_wrapper(menuitem, callback), menuitem)
+            frame.Bind(wx.EVT_MENU, event.menuitem_cb_wrapper(menuitem, callback), menuitem)
     
 class WxMenuBar(WxQuickContainer, wx.MenuBar):
     def pack(self, frame):
@@ -217,7 +207,7 @@ class SizerPanel(WxQuickContainer, wx.Panel):
     def pack(self, parent=None):
         super().pack(parent)
 
-        # Sizer layout expects only one child, which is the sizer
+        # SizerPanel expects only one child, which is the sizer
         sizer = self.children[0]
         self.SetSizer(sizer)
         self.SetAutoLayout(True)
@@ -230,6 +220,7 @@ class HBox(WxSizerMixin, containers.HorizontalBox): pass
 
 def HSpacer(size): return Spacer((size, 0))
 def VSpacer(size): return Spacer((0, size))
+def StretchSpacer(proportion=1): return Spacer((0, 0), proportion)
 
 # Font
 def BoldFont(point_size, family=wx.FONTFAMILY_DEFAULT, style=wx.FONTSTYLE_NORMAL):

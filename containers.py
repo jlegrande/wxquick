@@ -9,8 +9,9 @@ class HorizontalBox(wx.BoxSizer):
         wx.BoxSizer.__init__(self, wx.HORIZONTAL)
 
 class Spacer(wx.Object):
-    def __init__(self, parent, size):
+    def __init__(self, parent, size, proportion=0):
         self.spacer_size = size
+        self.proportion = proportion
 
 class DialogButtons(wx.BoxSizer):
     def __init__(self, parent, style):

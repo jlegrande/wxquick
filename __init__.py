@@ -3,6 +3,7 @@ import wx.adv
 import wx.html
 import wx.gizmos
 from wx.grid import Grid
+from wx.lib.platebtn import PlateButton
 from wx.lib.stattext import GenStaticText
 from wx.lib.intctrl import IntCtrl
 from wx.lib.masked import TextCtrl, TimeCtrl
@@ -44,23 +45,66 @@ class WxGrid(WxQuickWidget, Grid):
             self.SetColLabelValue(i, name)
 
 class WxHtmlListBox(WxQuickWidget, util.HtmlListBox): pass
-class WxHtmlWindow(WxQuickWidget, wx.html.HtmlWindow): pass
+class WxHtmlWindow(WxQuickWidget, wx.html.HtmlWindow):
+    def pack(self, parent):
+        src = self._kwargs.pop('src', None)
+        super(WxHtmlWindow, self).pack(parent)
+        if src:
+            self.SetPage(src)
+
 class WxIntCtrl(WxQuickWidget, IntCtrl): events = [event.text]
 class WxListBox(WxQuickWidget, wx.ListBox): events = [event.listbox]
+class WxPlateButton(WxQuickWidget, PlateButton):
+    events = [event.button]
+
+    def pack(self, parent):
+        self.client_data = self._kwargs.pop('client_data', None)
+        label_color = self._kwargs.pop('label_color', None)
+        bmp = self._kwargs.pop('bitmap', None)
+        super(WxPlateButton, self).pack(parent)
+
+        if label_color:
+            self.SetLabelColor(label_color)
+
+        if bmp:
+            self.SetBitmap(bmp)
+        
 class WxRadioBox(WxQuickWidget, wx.RadioBox): pass
 
 class WxStaticBitmap(WxQuickWidget, wx.StaticBitmap):
     def pack(self, parent):
-        path = self._kwargs.pop('path')
+        path = self._kwargs.pop('path', None)
         if path:
             bitmap_type = self._kwargs.pop('bmptype', wx.BITMAP_TYPE_JPEG)
             img = wx.Image(path, bitmap_type)
             self._kwargs['bitmap'] = img.ConvertToBitmap()
+        elif not self._kwargs.get('bitmap'):
+            size = self._kwargs.get('size', (-1, -1))
+            self._kwargs['bitmap'] = wx.EmptyBitmap(size[0], size[1])
             
         super(WxStaticBitmap, self).pack(parent)
 
+        self.SetScaleMode(wx.StaticBitmap.Scale_AspectFill)
+
+    def LoadFrom(self, path):
+        bmp = wx.Bitmap()
+        self.SetBitmap(bmp.LoadFile(path))
+
 class WxStaticLine(WxQuickWidget, wx.StaticLine): pass
-class WxStaticText(WxQuickWidget, wx.StaticText): pass
+class WxStaticText(WxQuickWidget, wx.StaticText):
+    def pack(self, parent):
+        point_size = self._kwargs.pop('point_size', None)
+        if self._kwargs.pop('align_center', False):
+            self._kwargs.setdefault('style', wx.ALIGN_CENTER)
+            self._kwargs['style'] |= wx.ALIGN_CENTER
+            
+        super(WxStaticText, self).pack(parent)
+        if point_size:
+            font = self.GetFont()
+            font.SetPointSize(point_size)
+            self.SetFont(font)
+
+        
 class WxSlider(WxQuickWidget, wx.Slider): events = [event.scroll]
 class WxTextCtrl(WxQuickWidget, wx.TextCtrl): events = [event.text]
 
@@ -91,6 +135,7 @@ class DialogButtons(WxQuickWidget, containers.DialogButtons):
 
 class MaskedTextCtrl(WxQuickWidget, TextCtrl): pass
 class MaskedTimeCtrl(WxQuickWidget, TimeCtrl): pass
+class LEDNumberCtrl(WxQuickWidget, wx.gizmos.LEDNumberCtrl): pass
 
 # Containers
 class WxDialog(WxQuickContainer, wx.Dialog):
@@ -205,8 +250,12 @@ class ScrolledSizerPanel(WxQuickContainer, ScrolledPanel):
 
 class SizerPanel(WxQuickContainer, wx.Panel):
     def pack(self, parent=None):
+        bgcolor = self._kwargs.pop('bg_color', None)
         super().pack(parent)
 
+        if bgcolor:
+            self.SetBackgroundColour(wx.Colour(bgcolor[0], bgcolor[1], bgcolor[2]))
+            
         # SizerPanel expects only one child, which is the sizer
         sizer = self.children[0]
         self.SetSizer(sizer)
@@ -218,9 +267,45 @@ class Spacer(WxQuickWidget, containers.Spacer): pass
 class VBox(WxSizerMixin, containers.VerticalBox): pass
 class HBox(WxSizerMixin, containers.HorizontalBox): pass
 
-def HSpacer(size): return Spacer((size, 0))
-def VSpacer(size): return Spacer((0, size))
-def StretchSpacer(proportion=1): return Spacer((0, 0), proportion)
+def HSpacer(size):
+    return Spacer((size, 0))
+
+def VSpacer(size):
+    return Spacer((0, size))
+
+def StretchSpacer(proportion=1):
+    return Spacer((0, 0), proportion)
+
+# wx.SizerItem configuration
+class Layout:
+    def __init__(self, **kwargs):
+        config_defaults = {
+            'proportion': 0,
+            'flag': 0,
+            'border': 0}
+
+        for k, v in config_defaults.items():
+            setattr(self, k, kwargs.get(k, v))
+            
+    def center(self):
+        self.flag |= wx.ALIGN_CENTER
+        return self
+    
+    def expand(self):
+        self.flag |= wx.EXPAND
+        return self
+
+    def border_all(self):
+        self.flag |= wx.ALL
+        return self
+    
+    def border_left_right(self):
+        self.flag |= wx.LEFT|wx.RIGHT
+        return self
+
+    def border_top_bottom(self):
+        self.flag |= wx.TOP|wx.BOTTOM
+        return self
 
 # Font
 def BoldFont(point_size, family=wx.FONTFAMILY_DEFAULT, style=wx.FONTSTYLE_NORMAL):

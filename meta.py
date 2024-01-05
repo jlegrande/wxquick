@@ -36,7 +36,20 @@ class WxQuickBase(object):
         self.wx_class.__init__(self, parent, **self._kwargs)
         for child in self.children:
             child.pack(self)
+
+    def apply_item_layout(self):
+        if not (item_layout := self._kwargs.pop('item_layout', None)):
+            return
         
+        if item_layout.proportion > 0:
+            self.proportion = item_layout.proportion
+        
+        if item_layout.flag > 0:
+            self.flag = item_layout.flag
+
+        if item_layout.border > 0:
+            self.border = item_layout.border
+            
 class WxQuickContainer(WxQuickBase):
     def __init__(self, *args, **kw):
         '''Base class for wx container controls'''
@@ -48,6 +61,8 @@ class WxQuickContainer(WxQuickBase):
         self.center_children = kw.pop('center_children', False)
         self._kwargs = kw
 
+        self.apply_item_layout()
+        
     def __add__(self, child):
         self.children.append(child)
         return self
@@ -71,6 +86,8 @@ class WxQuickWidget(WxQuickBase):
         self.callback = kw.pop('callback', None)
         self._kwargs = kw
 
+        self.apply_item_layout()
+        
     def pack(self, parent):
         if self._kwargs:
             self.wx_class.__init__(self, parent, *self._args, **self._kwargs)

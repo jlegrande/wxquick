@@ -10,7 +10,7 @@ class WxQuickBase(object):
                - WxQuickContainer
                - WxQuickWidget
                - WxSizerMixin'''
-        
+
         for base in cls.__bases__:
             if base in (WxQuickContainer, WxQuickWidget, WxSizerMixin):
                 return cls
@@ -84,6 +84,7 @@ class WxQuickWidget(WxQuickBase):
         self.value = kw.pop('value', None)
         self.enable = kw.pop('enable', True)
         self.callback = kw.pop('callback', None)
+        self.client_data = kw.pop('client_data', None)
         self._kwargs = kw
 
         self.apply_item_layout()
@@ -126,7 +127,6 @@ class WxQuickWidget(WxQuickBase):
         for event in getattr(self, 'events', []):
             if self.callback:
                 event(self, self.callback)
-
 
 class WxSizerMixin(WxQuickContainer):
     def pack(self, parent, container_parent=None):

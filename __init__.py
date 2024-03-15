@@ -3,6 +3,7 @@ import wx.adv
 import wx.html
 import wx.gizmos
 from wx.grid import Grid
+from wx.lib.buttons import GenBitmapTextButton, GenButton
 from wx.lib.platebtn import PlateButton
 from wx.lib.stattext import GenStaticText
 from wx.lib.intctrl import IntCtrl
@@ -13,9 +14,21 @@ from . import util
 from . import containers
 from . import event
 
+def get_set_font(func):
+    def wrapper_get_set_font(*args):
+        self = args[0]
+        new_args = list(args)
+        font = self.GetFont()
+        new_args.append(font)
+        func(*new_args)
+        self.SetFont(font)
+
+    return wrapper_get_set_font
+
 
 class ListCtrlPacker(object):
     def pack(self, parent):
+        print('lcp pack')
         cols = self._kwargs.pop('columns', [])
         super().pack(parent)
 
@@ -31,7 +44,8 @@ class WxCheckBox(WxQuickWidget, wx.CheckBox): events = [event.checkbox]
 class WxComboBox(WxQuickWidget, wx.ComboBox): events = [event.combobox]
 class WxChoice(WxQuickWidget, wx.Choice): events = [event.choice]
 class WxDatePicker(WxQuickWidget, wx.adv.DatePickerCtrl): pass
-class WxEditableListBox(WxQuickWidget, wx.adv.EditableListBox): pass 
+class WxEditableListBox(WxQuickWidget, wx.adv.EditableListBox): pass
+class WxGenButton(WxQuickWidget, GenButton): events = [event.button]
 class WxGenericDatePicker(WxQuickWidget, wx.adv.DatePickerCtrl): pass
 class WxGenStaticText(WxQuickWidget, GenStaticText): pass
 
@@ -76,8 +90,9 @@ class WxStaticBitmap(WxQuickWidget, wx.StaticBitmap):
         path = self._kwargs.pop('path', None)
         if path:
             bitmap_type = self._kwargs.pop('bmptype', wx.BITMAP_TYPE_JPEG)
-            img = wx.Image(path, bitmap_type)
-            self._kwargs['bitmap'] = img.ConvertToBitmap()
+            bmp = wx.Bitmap()
+            bmp.LoadFile(path)
+            self._kwargs['bitmap'] = bmp
         elif not self._kwargs.get('bitmap'):
             size = self._kwargs.get('size', (-1, -1))
             self._kwargs['bitmap'] = wx.EmptyBitmap(size[0], size[1])
@@ -88,22 +103,29 @@ class WxStaticBitmap(WxQuickWidget, wx.StaticBitmap):
 
     def LoadFrom(self, path):
         bmp = wx.Bitmap()
-        self.SetBitmap(bmp.LoadFile(path))
+        bmp.LoadFile(path)
+        self.SetBitmap(bmp)
 
 class WxStaticLine(WxQuickWidget, wx.StaticLine): pass
 class WxStaticText(WxQuickWidget, wx.StaticText):
     def pack(self, parent):
         point_size = self._kwargs.pop('point_size', None)
+        italic = self._kwargs.pop('italic', None)
         if self._kwargs.pop('align_center', False):
             self._kwargs.setdefault('style', wx.ALIGN_CENTER)
             self._kwargs['style'] |= wx.ALIGN_CENTER
             
         super(WxStaticText, self).pack(parent)
         if point_size:
-            font = self.GetFont()
-            font.SetPointSize(point_size)
-            self.SetFont(font)
-
+            self.set_font_property(lambda f: f.SetPointSize(point_size))
+            
+        if italic:
+            self.set_font_property(lambda f: f.SetStyle(wx.FONTSTYLE_ITALIC))
+            
+    @get_set_font
+    def set_font_property(self, prop_set_func, font):
+        prop_set_func(font)
+            
         
 class WxSlider(WxQuickWidget, wx.Slider): events = [event.scroll]
 class WxTextCtrl(WxQuickWidget, wx.TextCtrl): events = [event.text]
@@ -286,25 +308,45 @@ class Layout:
 
         for k, v in config_defaults.items():
             setattr(self, k, kwargs.get(k, v))
-            
+
+    def _set_border_size(self, border_size):
+        if border_size is not None:
+            self.border = border_size
+        
     def center(self):
         self.flag |= wx.ALIGN_CENTER
         return self
+
+    def center_vertical(self):
+        self.flag |= wx.ALIGN_CENTER_VERTICAL
     
     def expand(self):
         self.flag |= wx.EXPAND
         return self
 
-    def border_all(self):
+    def border_all(self, border=None):
         self.flag |= wx.ALL
-        return self
-    
-    def border_left_right(self):
-        self.flag |= wx.LEFT|wx.RIGHT
+        self._set_border_size(border)
         return self
 
-    def border_top_bottom(self):
+    def border_left(self, border):
+        self.flag |= wx.LEFT
+        self._set_border_size(border)
+        return self
+    
+    def border_left_right(self, border=None):
+        self.flag |= wx.LEFT|wx.RIGHT
+        self._set_border_size(border)
+        return self
+
+    def border_right(self, border):
+        self.flag |= wx.RIGHT
+        self._set_border_size(border)
+        return self
+
+    def border_top_bottom(self, border=None):
         self.flag |= wx.TOP|wx.BOTTOM
+        self._set_border_size(border)
         return self
 
 # Font

@@ -14,17 +14,6 @@ from . import util
 from . import containers
 from . import event
 
-def get_set_font(func):
-    def wrapper_get_set_font(*args):
-        self = args[0]
-        new_args = list(args)
-        font = self.GetFont()
-        new_args.append(font)
-        func(*new_args)
-        self.SetFont(font)
-
-    return wrapper_get_set_font
-
 
 class ListCtrlPacker(object):
     def pack(self, parent):
@@ -95,7 +84,7 @@ class WxStaticBitmap(WxQuickWidget, wx.StaticBitmap):
             self._kwargs['bitmap'] = bmp
         elif not self._kwargs.get('bitmap'):
             size = self._kwargs.get('size', (-1, -1))
-            self._kwargs['bitmap'] = wx.EmptyBitmap(size[0], size[1])
+            self._kwargs['bitmap'] = wx.Bitmap(size[0], size[1])
             
         super(WxStaticBitmap, self).pack(parent)
 
@@ -116,16 +105,16 @@ class WxStaticText(WxQuickWidget, wx.StaticText):
             self._kwargs['style'] |= wx.ALIGN_CENTER
             
         super(WxStaticText, self).pack(parent)
+        font = self.GetFont()
+
         if point_size:
-            self.set_font_property(lambda f: f.SetPointSize(point_size))
+            font.SetPointSize(point_size)
             
         if italic:
-            self.set_font_property(lambda f: f.SetStyle(wx.FONTSTYLE_ITALIC))
-            
-    @get_set_font
-    def set_font_property(self, prop_set_func, font):
-        prop_set_func(font)
-            
+            font.SetStyle(wx.FONTSTYLE_ITALIC)
+
+        self.SetFont(font)
+
         
 class WxSlider(WxQuickWidget, wx.Slider): events = [event.scroll]
 class WxTextCtrl(WxQuickWidget, wx.TextCtrl): events = [event.text]
@@ -276,7 +265,10 @@ class SizerPanel(WxQuickContainer, wx.Panel):
         super().pack(parent)
 
         if bgcolor:
-            self.SetBackgroundColour(wx.Colour(bgcolor[0], bgcolor[1], bgcolor[2]))
+            if isinstance(bgcolor, str):
+                self.SetBackgroundColour(bgcolor)
+            else:
+                self.SetBackgroundColour(wx.Colour(bgcolor[0], bgcolor[1], bgcolor[2]))
             
         # SizerPanel expects only one child, which is the sizer
         sizer = self.children[0]

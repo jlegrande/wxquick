@@ -28,7 +28,7 @@ def combobox_cb_wrapper(combobox, callback):
 
 def menuitem_cb_wrapper(menuitem, callback):
     def cb(evt):
-        callback(menuitem.GetLabel(), menuitem, evt)
+        callback(menuitem.GetItemLabelText(), menuitem, evt)
 
     return cb
     

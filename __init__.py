@@ -375,3 +375,15 @@ def DirDialog(prompt,
         defaultPath = wx.StandardPaths.Get().GetDocumentsDir()
         
     return wx.DirDialog(parent, prompt, style=style, defaultPath=defaultPath)
+
+def SaveDialog(message,
+               default_dir,
+               wildcard,
+               parent=None):
+
+    return wx.FileDialog(
+        parent,
+        message=message,
+        defaultDir=default_dir,
+        wildcard=wildcard,
+        style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)

@@ -49,6 +49,10 @@ class WxQuickBase(object):
 
         if item_layout.border > 0:
             self.border = item_layout.border
+
+        if item_layout.wrap:
+            self.post_sizer_add_wrap = item_layout.wrap
+            
             
 class WxQuickContainer(WxQuickBase):
     def __init__(self, *args, **kw):
@@ -56,6 +60,7 @@ class WxQuickContainer(WxQuickBase):
         self.children = list(args)
         self.proportion = kw.pop('sizer_proportion', 0)
         self.flag = kw.pop('sizer_flag', 0)
+        self.post_sizer_add_wrap = None
         self.border = kw.pop('sizer_border', 0)
         self.item_gap = kw.pop('item_gap', 0)
         self.center_children = kw.pop('center_children', False)
@@ -74,6 +79,7 @@ class WxQuickWidget(WxQuickBase):
         self.proportion = kw.pop('sizer_proportion', 0)
         self.flag = kw.pop('sizer_flag', 0)
         self.border = kw.pop('sizer_border', 0)
+        self.post_sizer_add_wrap = None
         self.grid_pos = kw.pop('grid_pos', None)
         self.grid_span = kw.pop('grid_span', wx.DefaultSpan)
         self.font = kw.pop('font', None)
@@ -85,6 +91,8 @@ class WxQuickWidget(WxQuickBase):
         self.enable = kw.pop('enable', True)
         self.callback = kw.pop('callback', None)
         self.client_data = kw.pop('client_data', None)
+        self.min_size = kw.pop('min_size', None)
+        self.max_size = kw.pop('max_size', None)
         self._kwargs = kw
 
         self.apply_item_layout()
@@ -115,6 +123,12 @@ class WxQuickWidget(WxQuickBase):
             font.SetWeight(wx.FONTWEIGHT_BOLD)
             self.SetFont(font)
 
+        if self.min_size:
+            self.SetMinSize(self.min_size)
+            
+        if self.max_size:
+            self.SetMaxSize(self.max_size)
+
         if self.wrap:
             self.Wrap(self.wrap)
 
@@ -142,6 +156,10 @@ class WxSizerMixin(WxQuickContainer):
             spacer_size = getattr(child, 'spacer_size', None)
             if not spacer_size:
                 self.Add(child, child.proportion, child.flag, child.border)
+                if child.post_sizer_add_wrap:
+                    child.Wrap(child.post_sizer_add_wrap)
+                    child.GetParent().Layout()
+                
             else:
                 sizer_proportion = getattr(child, 'proportion', 0)
                 try:

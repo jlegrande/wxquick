@@ -349,7 +349,8 @@ class Layout:
         config_defaults = {
             'proportion': 0,
             'flag': 0,
-            'border': 0}
+            'border': 0,
+            'wrap': None}
 
         for k, v in config_defaults.items():
             setattr(self, k, kwargs.get(k, v))
@@ -404,6 +405,9 @@ class Layout:
         self._set_border_size(border)
         return self
 
+    def text_wrap_at(self, size):
+        self.wrap = size
+        return self
 
 # Font
 def BoldFont(point_size, family=wx.FONTFAMILY_DEFAULT, style=wx.FONTSTYLE_NORMAL):

@@ -4,6 +4,7 @@ import wx.html
 import wx.gizmos
 from wx.grid import Grid
 from wx.lib.buttons import GenBitmapTextButton, GenButton
+from wx.lib.agw.gradientbutton import GradientButton
 from wx.lib.platebtn import PlateButton
 from wx.lib.stattext import GenStaticText
 from wx.lib.intctrl import IntCtrl
@@ -28,7 +29,21 @@ class ListCtrlPacker(object):
 # Wrapper Classes
 
 # Widgets
-class WxButton(WxQuickWidget, wx.Button): events = [event.button]
+class WxBitmapButton(WxQuickWidget, wx.BitmapButton): events = [event.button]
+
+class WxButton(WxQuickWidget, wx.Button):
+    events = [event.button]
+
+    def pack(self, parent):
+        bmp = self._kwargs.pop('bitmap', None)
+        bmp_postion = self._kwargs.pop('bitmap_position', wx.LEFT)
+
+        super(WxButton, self).pack(parent)
+
+        if bmp:
+            self.SetBitmap(bmp, bmp_postion)
+
+            
 class WxCheckBox(WxQuickWidget, wx.CheckBox): events = [event.checkbox]
 class WxComboBox(WxQuickWidget, wx.ComboBox): events = [event.combobox]
 class WxChoice(WxQuickWidget, wx.Choice): events = [event.choice]
@@ -37,6 +52,32 @@ class WxEditableListBox(WxQuickWidget, wx.adv.EditableListBox): pass
 class WxGenButton(WxQuickWidget, GenButton): events = [event.button]
 class WxGenericDatePicker(WxQuickWidget, wx.adv.DatePickerCtrl): pass
 class WxGenStaticText(WxQuickWidget, GenStaticText): pass
+
+class WxGradientButton(WxQuickWidget, GradientButton):
+    events = [event.button]
+    
+    def pack(self, parent):
+
+        # Colors must be a wx.Colour() objects!
+        colors = (
+            (self._kwargs.pop('top_start_color', None), 'TopStart'),
+            (self._kwargs.pop('top_end_color', None), 'TopEnd'),
+            (self._kwargs.pop('bottom_start_color', None), 'BottomStart'),
+            (self._kwargs.pop('bottom_end_color', None), 'BottomEnd'),
+            (self._kwargs.pop('pressed_top_color', None), 'PressedTop'),
+            (self._kwargs.pop('pressed_bottom_color', None), 'PressedBottom'))
+
+        super(WxGradientButton, self).pack(parent)
+
+        for color, attrname in colors:
+            if not color:
+                continue
+
+            if isinstance(color, str):
+                color = wx.Colour(color)
+                
+            getattr(self, f'Set{attrname}Colour')(color)
+
 
 class WxGrid(WxQuickWidget, Grid):
     def pack(self, parent):
@@ -132,17 +173,29 @@ class DialogButtons(WxQuickWidget, containers.DialogButtons):
     events = [event.button]
 
     def pack(self, parent):
+        self._button_labels = self._kwargs.pop('button_labels', {})
         self.wx_class.__init__(self, parent, *self._args)
-        cb = self.callback
-        if not cb:
-            return
         
         child_sizer = self.GetChildren()[0].GetSizer()
-        buttons = [c.GetWindow() for c in child_sizer.GetChildren() if c.IsWindow()]
+        self.buttons = [c.GetWindow() for c in child_sizer.GetChildren() if c.IsWindow()]
+        for button in self.buttons:
+            if label := self._button_labels.get(button.GetId()):
+                button.SetLabel(label)
+                
+        if not self.callback:
+            return
 
         for evt in self.events:
-            for butt in buttons:
-                evt(butt, cb)
+            for butt in self.buttons:
+                evt(butt, self.callback)
+
+    def GetButtonById(self, button_id):
+        for button in self.buttons:
+            if button.GetId() == button_id:
+                return button
+
+        return None
+        
 
 class MaskedTextCtrl(WxQuickWidget, TextCtrl): pass
 class MaskedTimeCtrl(WxQuickWidget, TimeCtrl): pass
@@ -215,10 +268,10 @@ class WxMenuBar(WxQuickContainer, wx.MenuBar):
         frame.SetMenuBar(self)
     
 class WxNotebook(WxQuickContainer, wx.Notebook):
-    def notebook_pack(self, parent=None, show=False):
+    def pack(self, parent=None, show=False):
         self.wx_class.__init__(self, parent, **self._kwargs)
         for child in self.children:
-            text = child._kwargs.pop('tab_name')
+            text = child._kwargs.pop('tab_name', None)
             if not text:
                 print('[WARNING] Child of notebook does not have a tab name.')
                 continue
@@ -341,6 +394,17 @@ class Layout:
         self._set_border_size(border)
         return self
 
+    def border_top(self, border):
+        self.flag |= wx.TOP
+        self._set_border_size(border)
+        return self
+
+    def border_bottom(self, border):
+        self.flag |= wx.BOTTOM
+        self._set_border_size(border)
+        return self
+
+
 # Font
 def BoldFont(point_size, family=wx.FONTFAMILY_DEFAULT, style=wx.FONTSTYLE_NORMAL):
     return util.bold_font(point_size, family, style)
@@ -379,11 +443,14 @@ def DirDialog(prompt,
 def SaveDialog(message,
                default_dir,
                wildcard,
-               parent=None):
+               parent=None,
+               defaultFile=''):
 
     return wx.FileDialog(
         parent,
         message=message,
         defaultDir=default_dir,
         wildcard=wildcard,
+        defaultFile=defaultFile,
         style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+

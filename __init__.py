@@ -117,6 +117,7 @@ class WxRadioBox(WxQuickWidget, wx.RadioBox): pass
 
 class WxStaticBitmap(WxQuickWidget, wx.StaticBitmap):
     def pack(self, parent):
+        self.on_click = self._kwargs.pop('on_click', None)
         path = self._kwargs.pop('path', None)
         if path:
             bitmap_type = self._kwargs.pop('bmptype', wx.BITMAP_TYPE_JPEG)
@@ -129,8 +130,23 @@ class WxStaticBitmap(WxQuickWidget, wx.StaticBitmap):
             
         super(WxStaticBitmap, self).pack(parent)
 
+        # Bind events
+        if self.on_click:
+            self.Bind(wx.EVT_ENTER_WINDOW, self._enter)
+            self.Bind(wx.EVT_LEFT_UP, self._click)
+            self.Bind(wx.EVT_LEFT_DCLICK, self._click)
+        
         self.SetScaleMode(wx.StaticBitmap.Scale_AspectFill)
 
+    def _click(self, evt):
+        wx.CallAfter(self.on_click, self.client_data)
+        # self.on_click(self.client_data)
+        # evt.Skip()
+
+    def _enter(self, evt):
+        self.SetCursor(wx.Cursor(wx.CURSOR_HAND))
+        evt.Skip()
+        
     def LoadFrom(self, path):
         bmp = wx.Bitmap()
         bmp.LoadFile(path)
@@ -216,6 +232,16 @@ class WxDialog(WxQuickContainer, wx.Dialog):
 
         if center:
             self.CenterOnParent()
+
+class WxFlexGridSizer(WxQuickContainer, wx.FlexGridSizer):
+    def pack(self, parent):
+        self.wx_class.__init__(self, **self._kwargs)
+        for child in self.children:
+            child.pack(parent)
+            self.Add(child,
+                     child.proportion,
+                     child.flag,
+                     child.border)
 
 class WxGridBagSizer(WxQuickContainer, wx.GridBagSizer):
     def pack(self, parent):
@@ -358,13 +384,18 @@ class Layout:
     def _set_border_size(self, border_size):
         if border_size is not None:
             self.border = border_size
-        
+
+    def align_right(self):
+        self.flag |= wx.ALIGN_RIGHT
+        return self
+    
     def center(self):
         self.flag |= wx.ALIGN_CENTER
         return self
 
     def center_vertical(self):
         self.flag |= wx.ALIGN_CENTER_VERTICAL
+        return self
     
     def expand(self):
         self.flag |= wx.EXPAND
@@ -428,11 +459,11 @@ def ErrorDialog(error, caption, parent=None):
 def InfoDialog(error, caption, parent=None):
     return wx.MessageDialog(parent, error, caption, wx.OK|wx.ICON_INFORMATION)
 
-def ConfirmDialog(error, caption, parent=None):
+def ConfirmDialog(error, caption, parent=None, button_default=wx.NO_DEFAULT):
     return wx.MessageDialog(parent,
                             error,
                             caption,
-                            wx.YES|wx.NO|wx.NO_DEFAULT|wx.ICON_WARNING)
+                            wx.YES|wx.NO|button_default|wx.ICON_WARNING)
 
 def DirDialog(prompt,
               style=wx.DD_DEFAULT_STYLE,

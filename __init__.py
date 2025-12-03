@@ -2,6 +2,10 @@ import wx
 import wx.adv
 import wx.html
 import wx.gizmos
+try:
+    import wx.html2 as _wxhtml2
+except Exception:
+    _wxhtml2 = None
 from wx.grid import Grid
 from wx.lib.buttons import GenBitmapTextButton, GenButton
 from wx.lib.agw.gradientbutton import GradientButton
@@ -96,6 +100,51 @@ class WxHtmlWindow(WxQuickWidget, wx.html.HtmlWindow):
         if src:
             self.SetPage(src)
 
+class WxWebView(WxQuickWidget, wx.Panel):
+    def pack(self, parent):
+        src = self._kwargs.pop('src', None)
+        super(WxWebView, self).pack(parent)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        self.view = None
+        if _wxhtml2 and hasattr(_wxhtml2, "WebView"):
+            try:
+                self.view = _wxhtml2.WebView.New(self)
+            except Exception:
+                self.view = None
+
+        if self.view is None:
+            self.view = wx.html.HtmlWindow(self)
+
+        sizer.Add(self.view, 1, wx.EXPAND)
+        self.SetSizer(sizer)
+
+        if src:
+            self.SetPage(src)
+
+    def SetPage(self, html, base_url=""):
+        try:
+            if _wxhtml2 and isinstance(self.view, _wxhtml2.WebView):
+                self.view.SetPage(html, base_url)
+                return
+        except Exception:
+            pass
+        try:
+            self.view.SetPage(html)
+        except Exception:
+            pass
+
+    def GetPageSource(self):
+        try:
+            if _wxhtml2 and isinstance(self.view, _wxhtml2.WebView):
+                return self.view.GetPageSource()
+        except Exception:
+            pass
+        try:
+            return self.view.GetParser().GetSource()
+        except Exception:
+            return ""
+
 class WxIntCtrl(WxQuickWidget, IntCtrl): events = [event.text]
 class WxListBox(WxQuickWidget, wx.ListBox): events = [event.listbox]
 class WxPlateButton(WxQuickWidget, PlateButton):
@@ -113,7 +162,7 @@ class WxPlateButton(WxQuickWidget, PlateButton):
         if bmp:
             self.SetBitmap(bmp)
         
-class WxRadioBox(WxQuickWidget, wx.RadioBox): pass
+class WxRadioBox(WxQuickWidget, wx.RadioBox): events = [event.radiobox]
 
 class WxStaticBitmap(WxQuickWidget, wx.StaticBitmap):
     def pack(self, parent):
@@ -488,4 +537,3 @@ def SaveDialog(message,
         wildcard=wildcard,
         defaultFile=defaultFile,
         style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
-

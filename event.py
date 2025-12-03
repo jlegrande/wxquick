@@ -43,6 +43,12 @@ def choice_cb_wrapper(choice, callback):
         callback(evt.GetString(), choice, evt)
     return cb
 
+def radiobox_cb_wrapper(radiobox, callback):
+    def cb(evt):
+        sel = radiobox.GetSelection()
+        callback(radiobox.GetString(sel), sel, radiobox, evt)
+    return cb
+
 def text_ctrl_change_wrapper(text_ctrl, callback):
     def cb(evt):
         callback('text_ctrl_changed', text_ctrl.GetValue(), evt)
@@ -101,7 +107,12 @@ def choice(wxchoice, callback):
     wx.EVT_CHOICE(wxchoice,
                   wxchoice.GetId(),
                   choice_cb_wrapper(wxchoice, callback))
-    
+
+def radiobox(wxradiobox, callback):
+    wx.EVT_RADIOBOX(wxradiobox,
+                    wxradiobox.GetId(),
+                    radiobox_cb_wrapper(wxradiobox, callback))
+
 def text(text_ctrl, callback):
     wx.EVT_TEXT(text_ctrl, 
                 text_ctrl.GetId(), 

@@ -47,6 +47,18 @@ frame.pack(show=True)
 app.MainLoop()
 ```
 
+Adding children incrementally
+-----------------------------
+You can grow containers after creation using `+=`:
+```python
+from wxquick import WxFrame, WxTextCtrl, WxButton
+
+frame = WxFrame(title="Incremental")
+frame += WxTextCtrl(value="First field")
+frame += WxButton(label="Save", callback=lambda *_: print("saved"))
+frame.pack(show=True)
+```
+
 Layouts with sizers and grids
 -----------------------------
 ```python

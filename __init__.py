@@ -164,6 +164,8 @@ class WxPlateButton(WxQuickWidget, PlateButton):
         
 class WxRadioBox(WxQuickWidget, wx.RadioBox): events = [event.radiobox]
 
+class WxRadioButton(WxQuickWidget, wx.RadioButton): pass
+
 class WxStaticBitmap(WxQuickWidget, wx.StaticBitmap):
     def pack(self, parent):
         self.on_click = self._kwargs.pop('on_click', None)

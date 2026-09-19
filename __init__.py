@@ -150,6 +150,36 @@ class WxListBox(WxQuickWidget, wx.ListBox): events = [event.listbox]
 class WxPlateButton(WxQuickWidget, PlateButton):
     events = [event.button]
 
+    def _SetState(self, state):
+        """platebtn's timers outlive the button, so check it is still there.
+
+        platebtn schedules `wx.CallLater(80, __LeaveWindow)` when the
+        mouse leaves and `wx.CallLater(100, _SetState, ...)` on focus.
+        Both land here. PWS destroys panels constantly -- cleanup()
+        between matches, the card page re-rendering, a battle royal
+        rebuilding its mini-match panel -- so a mouse that drifts off a
+        button as its panel goes away leaves a callback pointing at a
+        wrapper whose C++ side is gone:
+
+            RuntimeError: wrapped C/C++ object of type PlateButton has
+            been deleted
+
+        Windows only in practice: platebtn's _SetState touches
+        self.Parent.RefreshRect there, and self.Refresh() elsewhere.
+        Donald Bychowski has reported it ten times or more, and it never
+        reproduces on demand, because it is a race with a 80ms window.
+        """
+        if not self:
+            # False once the C++ object is gone; True while it lives.
+            return
+        try:
+            super(WxPlateButton, self)._SetState(state)
+        except RuntimeError as exc:
+            # Destroyed between the check above and the refresh below.
+            # Anything else is a real error and must not be swallowed.
+            if 'has been deleted' not in str(exc):
+                raise
+
     def pack(self, parent):
         self.client_data = self._kwargs.pop('client_data', None)
         label_color = self._kwargs.pop('label_color', None)
